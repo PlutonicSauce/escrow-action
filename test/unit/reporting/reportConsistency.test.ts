@@ -21,7 +21,7 @@ describe("report format consistency", () => {
     expect(jsonOutput.summary).toEqual(report.summary);
     expect(jsonOutput.overallStatus).toBe(report.overallStatus);
     expect(consoleOutput).toContain(
-      `AgentContract: ${OVERALL_STATUS_LABELS[report.overallStatus]}`,
+      `Escrow: ${OVERALL_STATUS_LABELS[report.overallStatus]}`,
     );
     expect(markdownOutput).toContain(
       `**Overall status: ${OVERALL_STATUS_LABELS[report.overallStatus]}**`,

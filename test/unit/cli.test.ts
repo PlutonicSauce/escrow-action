@@ -194,7 +194,7 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(ExitCode.internalError);
     expect(harness.stderr.join("")).toContain(
-      "Internal AgentContract error: unexpected failure",
+      "Internal Escrow error: unexpected failure",
     );
   });
 
@@ -234,7 +234,7 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(ExitCode.checkFailed);
     expect(harness.stderr.join("")).toContain(
-      "error: One or more AgentContract claims failed.",
+      "error: One or more Escrow claims failed.",
     );
   });
 
@@ -244,7 +244,7 @@ describe("runCli", () => {
     const exitCode = await runCli(["--help"], harness.dependencies);
 
     expect(exitCode).toBe(ExitCode.success);
-    expect(harness.stdout.join("")).toContain("Usage: agentcontract");
+    expect(harness.stdout.join("")).toContain("Usage: escrow");
     expect(harness.stdout.join("")).toContain("check");
     expect(harness.stdout.join("")).toContain("fix");
   });

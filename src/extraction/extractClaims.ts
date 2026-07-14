@@ -21,7 +21,7 @@ import {
 } from "./codexClient.js";
 import { buildExtractionPrompt } from "./extractionPrompt.js";
 
-export const DEFAULT_CODEX_MODEL = "gpt-5.6";
+export const DEFAULT_CODEX_MODEL = "gpt-5.6-terra";
 export const DEFAULT_EXTRACTION_TIMEOUT_MS = 120_000;
 
 const DEFAULT_SCHEMA_PATH = fileURLToPath(
@@ -68,12 +68,14 @@ export function resolveCodexModel(
     return model;
   }
 
-  const environmentModel = environment.AGENTCONTRACT_CODEX_MODEL;
+  // ESCROW_CODEX_MODEL is the public setting. Keep the original variable as a
+  // compatibility alias for existing AgentContract-era automation.
+  const environmentModel = environment.ESCROW_CODEX_MODEL ?? environment.AGENTCONTRACT_CODEX_MODEL;
   if (environmentModel !== undefined) {
     const model = environmentModel.trim();
     if (model.length === 0) {
       throw new CodexExtractionError(
-        "AGENTCONTRACT_CODEX_MODEL cannot be empty.",
+        "ESCROW_CODEX_MODEL cannot be empty.",
       );
     }
     return model;

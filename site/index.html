@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Escrow — executable tests for the instructions your agent trusts</title>
+<meta name="description" content="Escrow verifies AGENTS.md against your actual repository. AI extracts the claims. Deterministic code decides the verdict." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<style>
+  :root{
+    --bg: #08090D;
+    --surface: #12141B;
+    --surface-2: #181B24;
+    --rule: rgba(255,255,255,0.09);
+    --rule-soft: rgba(255,255,255,0.06);
+    --text: #F2F1EC;
+    --text-dim: #9BA1AE;
+    --text-faint: #565C6A;
+    --pass: #4FE0A8;
+    --fail: #F2586A;
+    --violet: #6C5CE7;
+    --blue: #4C6FFF;
+    --accent: #9DB2FF;
+    --pixel-rgb: 138, 118, 255;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    isolation: isolate;
+  }
+  /* A static, full-page dot grid keeps the visual texture without a cursor glow. */
+  body::before{
+    content:'';
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background-image: radial-gradient(circle, rgba(157,178,255,0.32) 1.15px, transparent 1.4px);
+    background-size: 18px 18px;
+    opacity:0.58;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,0.92), rgba(0,0,0,0.56));
+    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.92), rgba(0,0,0,0.56));
+  }
+  a{ color:inherit; }
+  ::selection{ background: rgba(157,178,255,0.28); }
+
+  .wrap{ max-width: 1100px; margin: 0 auto; padding: 0 32px; position:relative; z-index:1; }
+
+  /* ---------- hero backdrop: soft gradient ---------- */
+  .nebula{
+    position:absolute; top:0; left:0; right:0; height: 820px;
+    z-index:0; pointer-events:none; overflow:hidden;
+  }
+  .nebula::before{
+    content:''; position:absolute; left:50%; top:-220px; width:1100px; height:700px;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(circle at 35% 30%, rgba(108,92,231,0.32), transparent 55%),
+      radial-gradient(circle at 65% 45%, rgba(76,111,255,0.22), transparent 60%);
+    filter: blur(70px);
+    opacity:0.7;
+    z-index:0;
+  }
+  .nebula::after{
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(180deg, transparent 0%, transparent 55%, var(--bg) 100%);
+    z-index:2;
+  }
+
+  /* ---------- NAV — frosted glass, sticky ---------- */
+  nav.top{
+    position: sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 32px;
+    max-width: 1100px; margin: 0 auto;
+    background: rgba(10,11,15,0.55);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid var(--rule-soft);
+    border-radius: 14px;
+    margin-top: 14px;
+  }
+  .logo{
+    font-family: var(--mono); font-weight: 600; font-size: 14px;
+    letter-spacing: 0.02em;
+    display:flex; align-items:center; gap:9px;
+  }
+  .logo-mark{
+    width:22px; height:22px; border-radius:6px;
+    background: linear-gradient(135deg, var(--violet), var(--blue));
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color:#fff;
+  }
+  .nav-links{ display:flex; align-items:center; gap:30px; font-size:14px; color: var(--text-dim); }
+  .nav-links a{ text-decoration:none; transition: color .15s; }
+  .nav-links a:hover, .nav-links a:focus-visible{ color: var(--text); }
+  .pill{
+    font-family: var(--sans); font-size: 13.5px; font-weight:600;
+    padding: 9px 18px; border-radius: 999px; text-decoration:none;
+    border: 1px solid var(--rule); transition: border-color .15s, color .15s; white-space:nowrap;
+    display:inline-block; position:relative;
+  }
+  .pill:hover, .pill:focus-visible{ border-color: var(--accent); color: var(--accent); outline:none; }
+  .pill-solid{ background: var(--text); color: var(--bg); border-color: var(--text); }
+  .pill-solid:hover, .pill-solid:focus-visible{ background: #fff; border-color:#fff; color:var(--bg); }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative; z-index:2;
+    text-align:center;
+    padding: 72px 0 8px;
+    display:flex; flex-direction:column; align-items:center;
+    pointer-events:none; /* let mouse events reach the dot field behind; re-enabled on interactive children */
+  }
+  .hero > *{ pointer-events:auto; }
+  .hero-mark{
+    width:56px; height:56px; border-radius:14px; margin-bottom:26px;
+    background: var(--surface); border:1px solid var(--rule);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 20px 40px -20px rgba(108,92,231,0.5);
+  }
+  .hero-mark svg{ width:26px; height:26px; }
+  h1.headline{
+    font-size: 44px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em;
+    margin: 0 0 18px; max-width: 700px;
+  }
+  /* Shiny Text-inspired highlight: one moving glint, kept intentionally subtle. */
+  .shiny-text{
+    display:inline-block;
+    color:var(--text);
+    background:linear-gradient(110deg, var(--text) 34%, #fff 48%, #aebeff 52%, var(--text) 66%);
+    background-size:250% 100%; background-position:100% 0;
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    animation:shiny-text-sweep 5.4s linear infinite;
+  }
+  @keyframes shiny-text-sweep{ to{ background-position:-150% 0; } }
+  p.sub{
+    font-size: 17px; line-height:1.6; color: var(--text-dim); max-width: 480px; margin: 0 0 30px;
+  }
+  .hero-ctas{ display:flex; gap:12px; margin-bottom: 10px; }
+  .hero-ctas .pill{ padding: 12px 24px; font-size:14.5px; }
+  .hero-note{ font-family: var(--mono); font-size:12.5px; color: var(--text-faint); margin-bottom: 56px; }
+  .hero-type{ min-height: 22px; margin: -8px 0 30px; color: var(--accent); }
+  .text-type{ display:inline-block; white-space:pre-wrap; }
+  .text-type__cursor{ margin-left:.25rem; display:inline-block; color:var(--text-dim); }
+  @media (prefers-reduced-motion: reduce){ .shiny-text{ animation:none; } }
+
+  /* ---------- TERMINAL (floating app-window, tiltable) ---------- */
+  .term-float{ position:relative; z-index:2; padding: 0 0 8px; perspective: 1400px; }
+  .term-shell{
+    max-width: 760px; margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    overflow:hidden;
+    box-shadow: 0 60px 120px -50px rgba(76,111,255,0.35), 0 0 0 1px rgba(255,255,255,0.02);
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .term-bar{
+    display:flex; align-items:center; gap:8px;
+    padding: 13px 18px; border-bottom: 1px solid var(--rule-soft);
+    background: var(--surface-2);
+  }
+  .term-bar .dot{ width:9px; height:9px; border-radius:50%; background: rgba(255,255,255,0.12); }
+  .term-bar .path{ margin-left: 8px; font-family: var(--mono); font-size:12px; color: var(--text-faint); }
+  .term-bar .chip{
+    margin-left:auto; font-family: var(--mono); font-size:11px; color: var(--text-faint);
+    border: 1px solid var(--rule); padding: 3px 9px; border-radius:999px;
+  }
+  .term-body{
+    font-family: var(--mono); font-size: 13.5px; line-height: 1.9;
+    padding: 24px 24px 26px; min-height: 300px; text-align:left;
+  }
+  .term-line{ white-space: pre-wrap; }
+  .term-line.cmd{ color: var(--text); }
+  .term-line.cmd::before{ content:'$ '; color: var(--accent); }
+  .term-line.dim{ color: var(--text-faint); }
+  .term-line.claim{
+    cursor:pointer; padding: 3px 8px; margin: 1px -8px; border-radius:6px;
+    transition: background .15s;
+  }
+  .term-line.claim:hover, .term-line.claim:focus-visible{ background: var(--surface-2); outline:none; }
+  .term-line.claim .status-fail{ color: var(--fail); }
+  .term-line.claim .status-pass{ color: var(--pass); }
+  .term-line.claim .evidence{ display:block; color: var(--text-faint); font-size:12px; padding-left: 20px; }
+  .term-summary{
+    margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--rule-soft);
+    display:flex; gap:18px; font-size:12.5px;
+  }
+  .term-summary .fail-ct{ color: var(--fail); font-weight:600; }
+  .term-summary .pass-ct{ color: var(--pass); font-weight:600; }
+  .cursor{ display:inline-block; width:7px; height:14px; background: var(--text-dim); vertical-align:-2px; animation: blink 1s step-end infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+  .term-caption{
+    text-align:center; font-family: var(--mono); font-size:12.5px; color: var(--text-faint);
+    margin-top:22px;
+  }
+  .live-check{
+    max-width:760px; margin:30px auto 0; padding:16px;
+    background:rgba(18,20,27,0.82); border:1px solid var(--rule); border-radius:14px;
+    box-shadow:0 30px 70px -44px rgba(76,111,255,0.36);
+  }
+  .live-check form{ display:flex; gap:10px; }
+  .live-check input{
+    min-width:0; flex:1; padding:11px 13px; color:var(--text); font:13px var(--mono);
+    background:var(--surface-2); border:1px solid var(--rule); border-radius:8px;
+  }
+  .live-check button{ cursor:pointer; }
+  .live-check-note{ margin:10px 2px 0; color:var(--text-dim); font:12px var(--mono); text-align:left; }
+  .live-check-result{ margin-top:12px; padding:12px; border-radius:8px; text-align:left; font:12px/1.55 var(--mono); white-space:pre-wrap; background:var(--surface-2); color:var(--text-dim); }
+  .live-check-result.fail{ border-left:3px solid var(--fail); }
+  .live-check-result.pass{ border-left:3px solid var(--pass); }
+
+  /* ---------- FEATURE PANELS ---------- */
+  .panel{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items:center;
+    padding: 110px 0;
+  }
+  .panel.rev .panel-text{ order:2; }
+  .panel.rev .panel-visual{ order:1; }
+  .panel-eyebrow{ font-family: var(--mono); font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color: var(--text-faint); margin-bottom:16px; }
+  .panel-text h2{ font-size:28px; font-weight:700; letter-spacing:-0.01em; margin: 0 0 14px; line-height:1.25; }
+  .panel-text p{ color: var(--text-dim); font-size:15.5px; line-height:1.7; margin:0; max-width:400px; }
+
+  .diff-card{
+    background: var(--surface); border:1px solid var(--rule); border-radius:12px;
+    overflow:hidden; font-family: var(--mono); font-size: 13px;
+    box-shadow: 0 40px 80px -40px rgba(0,0,0,0.5);
+  }
+  .diff-row{ display:flex; padding: 12px 18px; border-bottom:1px solid var(--rule-soft); align-items:flex-start; gap:14px; }
+  .diff-row:last-child{ border-bottom:none; }
+  .diff-mark{ width:16px; flex-shrink:0; font-weight:700; }
+  .diff-row.claim .diff-mark{ color: var(--text-faint); }
+  .diff-row.evidence .diff-mark{ color: var(--fail); }
+  .diff-row.evidence{ background: rgba(242,88,106,0.05); }
+  .diff-row.claim .diff-text{ color: var(--text-dim); text-decoration: line-through; text-decoration-color: var(--text-faint); }
+  .diff-row.evidence .diff-text{ color: #EFA0AB; }
+
+  .principle-card{
+    background: radial-gradient(circle at 30% 20%, rgba(108,92,231,0.18), transparent 60%), var(--surface);
+    border:1px solid var(--rule); border-radius:14px; padding: 36px 34px;
+    box-shadow: 0 40px 90px -40px rgba(108,92,231,0.35);
+  }
+  .principle-row{ display:flex; justify-content:space-between; gap:20px; }
+  .principle-col{ flex:1; }
+  .principle-col + .principle-col{ border-left:1px solid var(--rule-soft); padding-left:20px; }
+  .principle-tag{ font-family: var(--mono); font-size:11px; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:10px; }
+  .principle-col:first-child .principle-tag{ color: var(--accent); }
+  .principle-col:last-child .principle-tag{ color: var(--pass); }
+  .principle-col h4{ font-size:15.5px; margin:0 0 6px; }
+  .principle-col p{ font-size:13px; color: var(--text-dim); line-height:1.55; margin:0; }
+
+  .mcp-code{
+    background: var(--surface); border:1px solid var(--rule); border-radius:12px;
+    font-family: var(--mono); font-size:13px; padding:24px; color: var(--text-dim); line-height:1.85;
+    overflow-x:auto; box-shadow: 0 40px 80px -40px rgba(76,111,255,0.3);
+  }
+  .mcp-code .k{ color: var(--accent); }
+  .mcp-code .s{ color: var(--pass); }
+  .mcp-code .c{ color: var(--text-faint); }
+
+  /* ---------- MAGIC BENTO — claim types ---------- */
+  .tags-section{ padding: 90px 0; border-top: 1px solid var(--rule-soft); }
+  .tags-section .head{ text-align:center; margin-bottom: 48px; }
+  .tags-section .panel-eyebrow{ justify-content:center; display:flex; }
+  .tags-section h2{ font-size:26px; font-weight:700; margin:0; }
+
+  .bento-grid{
+    position:relative;
+    display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;
+  }
+  .bento-card{
+    position:relative; overflow:hidden;
+    background: var(--surface); border:1px solid var(--rule); border-radius:14px;
+    padding: 22px; min-height: 148px;
+    --glow-x:50%; --glow-y:50%; --glow-intensity:0;
+    transition: transform .2s ease;
+  }
+  .bento-card::after{
+    content:''; position:absolute; inset:0; padding:1px; pointer-events:none;
+    background: radial-gradient(220px circle at var(--glow-x) var(--glow-y),
+      rgba(var(--pixel-rgb), calc(var(--glow-intensity) * 0.9)) 0%,
+      rgba(var(--pixel-rgb), calc(var(--glow-intensity) * 0.35)) 35%,
+      transparent 65%);
+    border-radius: inherit;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+  }
+  .bento-card::before{
+    content:''; position:absolute; inset:0; pointer-events:none; opacity: var(--glow-intensity);
+    background: radial-gradient(160px circle at var(--glow-x) var(--glow-y), rgba(var(--pixel-rgb),0.10), transparent 70%);
+    transition: opacity .2s ease;
+  }
+  .bento-particle{
+    position:absolute; width:4px; height:4px; border-radius:50%;
+    background: rgb(var(--pixel-rgb)); box-shadow: 0 0 6px rgba(var(--pixel-rgb),0.7);
+    pointer-events:none; z-index:5;
+  }
+  .bento-label{ font-family: var(--mono); font-size:11px; color: var(--text-faint); margin-bottom:14px; position:relative; z-index:2; }
+  .bento-type{ font-family: var(--mono); font-size:14.5px; color: var(--accent); margin-bottom:8px; position:relative; z-index:2; }
+  .bento-desc{ font-size:13px; color: var(--text-dim); line-height:1.55; position:relative; z-index:2; }
+
+  /* ---------- bottom CTA ---------- */
+  .cta-final{
+    text-align:center; padding: 100px 0 110px; border-top: 1px solid var(--rule-soft);
+    position:relative;
+  }
+  .cta-final h2{ font-size:32px; font-weight:700; margin:0 0 14px; letter-spacing:-0.01em; }
+  .cta-final p{ color: var(--text-dim); font-size:15.5px; margin:0 0 32px; }
+  .cta-final .pill{ padding:13px 26px; font-size:14.5px; }
+
+  /* ---------- FOOTER ---------- */
+  footer{ padding: 44px 0 60px; border-top:1px solid var(--rule-soft); }
+  .foot-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .foot-links{ display:flex; gap:24px; font-size:13.5px; color: var(--text-dim); }
+  .foot-links a{ text-decoration:none; }
+  .foot-links a:hover{ color: var(--text); }
+  .foot-note{ font-family: var(--mono); font-size:12px; color: var(--text-faint); }
+
+  .reveal{ opacity:0; }
+
+  @media (max-width: 880px){
+    .nebula{ height:600px; }
+    h1.headline{ font-size:32px; }
+    .panel, .panel.rev{ grid-template-columns: 1fr; gap:32px; padding: 70px 0; }
+    .panel .panel-text{ order:1 !important; }
+    .panel .panel-visual{ order:2 !important; }
+    .principle-row{ flex-direction:column; gap:20px; }
+    .principle-col + .principle-col{ border-left:none; padding-left:0; border-top:1px solid var(--rule-soft); padding-top:20px; }
+    .nav-links{ display:none; }
+    .bento-grid{ grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width:560px){
+    h1.headline{ font-size:27px; }
+    .term-body{ font-size:12px; }
+    .bento-grid{ grid-template-columns: 1fr; }
+    .live-check form{ flex-direction:column; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .cursor{ animation:none; }
+    html{ scroll-behavior:auto; }
+    .reveal{ opacity:1 !important; transform:none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, memo, createElement } = React;
+const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+
+/* =====================================================================
+   DotField — from React Bits, adapted in place (no separate CSS import
+   since this is a single-file build). Canvas 2D grid of dots that bulge
+   away from the cursor, plus an SVG radial glow that trails it.
+   Tuned to the Escrow palette (violet -> blue).
+   ===================================================================== */
+const TWO_PI = Math.PI * 2;
+
+const DotField = memo(({
+  dotRadius = 1.5,
+  dotSpacing = 15,
+  cursorRadius = 220,
+  cursorForce = 0.1,
+  bulgeOnly = true,
+  bulgeStrength = 46,
+  glowRadius = 170,
+  sparkle = true,
+  waveAmplitude = 0,
+  gradientFrom = 'rgba(124, 108, 255, 0.4)',
+  gradientTo = 'rgba(76, 111, 255, 0.22)',
+  glowColor = '#8A76FF',
+  ...rest
+}) => {
+  const canvasRef = useRef(null);
+  const glowRef = useRef(null);
+  const dotsRef = useRef([]);
+  const mouseRef = useRef({ x: -9999, y: -9999, prevX: -9999, prevY: -9999, speed: 0 });
+  const rafRef = useRef(null);
+  const sizeRef = useRef({ w: 0, h: 0, offsetX: 0, offsetY: 0 });
+  const glowOpacity = useRef(0);
+  const engagement = useRef(0);
+  const propsRef = useRef({});
+  propsRef.current = { dotRadius, dotSpacing, cursorRadius, cursorForce, bulgeOnly, bulgeStrength, sparkle, waveAmplitude, gradientFrom, gradientTo };
+  const rebuildRef = useRef(null);
+  const glowIdRef = useRef(`dot-field-glow-${Math.random().toString(36).slice(2, 9)}`);
+
+  useEffect(() => {
+    if (reducedMotion) return;
+    const canvas = canvasRef.current;
+    const glowEl = glowRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let resizeTimer;
+
+    function resize() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(doResize, 100);
+    }
+
+    function doResize() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      sizeRef.current = {
+        w, h,
+        offsetX: rect.left + window.scrollX,
+        offsetY: rect.top + window.scrollY,
+      };
+
+      buildDots(w, h);
+    }
+
+    function buildDots(w, h) {
+      const p = propsRef.current;
+      const step = p.dotRadius + p.dotSpacing;
+      const cols = Math.floor(w / step);
+      const rows = Math.floor(h / step);
+      const padX = (w % step) / 2;
+      const padY = (h % step) / 2;
+      const dots = new Array(rows * cols);
+      let idx = 0;
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const ax = padX + col * step + step / 2;
+          const ay = padY + row * step + step / 2;
+          dots[idx++] = { ax, ay, sx: ax, sy: ay, vx: 0, vy: 0, x: ax, y: ay };
+        }
+      }
+      dotsRef.current = dots;
+    }
+
+    function onMouseMove(e) {
+      const s = sizeRef.current;
+      mouseRef.current.x = e.pageX - s.offsetX;
+      mouseRef.current.y = e.pageY - s.offsetY;
+    }
+
+    function updateMouseSpeed() {
+      const m = mouseRef.current;
+      const dx = m.prevX - m.x;
+      const dy = m.prevY - m.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      m.speed += (dist - m.speed) * 0.5;
+      if (m.speed < 0.001) m.speed = 0;
+      m.prevX = m.x;
+      m.prevY = m.y;
+    }
+
+    const speedInterval = setInterval(updateMouseSpeed, 20);
+    let frameCount = 0;
+
+    function tick() {
+      frameCount++;
+      const dots = dotsRef.current;
+      const m = mouseRef.current;
+      const { w, h } = sizeRef.current;
+      const p = propsRef.current;
+      const len = dots.length;
+      const t = frameCount * 0.02;
+
+      const targetEngagement = Math.min(m.speed / 5, 1);
+      engagement.current += (targetEngagement - engagement.current) * 0.06;
+      if (engagement.current < 0.001) engagement.current = 0;
+      const eng = engagement.current;
+
+      glowOpacity.current += (eng - glowOpacity.current) * 0.08;
+
+      if (glowEl) {
+        glowEl.setAttribute('cx', m.x);
+        glowEl.setAttribute('cy', m.y);
+        glowEl.style.opacity = glowOpacity.current;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, p.gradientFrom);
+      grad.addColorStop(1, p.gradientTo);
+      ctx.fillStyle = grad;
+
+      const cr = p.cursorRadius;
+      const crSq = cr * cr;
+      const rad = p.dotRadius / 2;
+      const isBulge = p.bulgeOnly;
+
+      ctx.beginPath();
+
+      for (let i = 0; i < len; i++) {
+        const d = dots[i];
+        const dx = m.x - d.ax;
+        const dy = m.y - d.ay;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq < crSq && eng > 0.01) {
+          const dist = Math.sqrt(distSq);
+          if (isBulge) {
+            const tt = 1 - dist / cr;
+            const push = tt * tt * p.bulgeStrength * eng;
+            const angle = Math.atan2(dy, dx);
+            d.sx += (d.ax - Math.cos(angle) * push - d.sx) * 0.15;
+            d.sy += (d.ay - Math.sin(angle) * push - d.sy) * 0.15;
+          } else {
+            const angle = Math.atan2(dy, dx);
+            const move = (500 / dist) * (m.speed * p.cursorForce);
+            d.vx += Math.cos(angle) * -move;
+            d.vy += Math.sin(angle) * -move;
+          }
+        } else if (isBulge) {
+          d.sx += (d.ax - d.sx) * 0.1;
+          d.sy += (d.ay - d.sy) * 0.1;
+        }
+
+        if (!isBulge) {
+          d.vx *= 0.9;
+          d.vy *= 0.9;
+          d.x = d.ax + d.vx;
+          d.y = d.ay + d.vy;
+          d.sx += (d.x - d.sx) * 0.1;
+          d.sy += (d.y - d.sy) * 0.1;
+        }
+
+        let drawX = d.sx;
+        let drawY = d.sy;
+        if (p.waveAmplitude > 0) {
+          drawY += Math.sin(d.ax * 0.03 + t) * p.waveAmplitude;
+          drawX += Math.cos(d.ay * 0.03 + t * 0.7) * p.waveAmplitude * 0.5;
+        }
+
+        if (p.sparkle) {
+          const hash = ((i * 2654435761) ^ (frameCount >> 3)) >>> 0;
+          if ((hash % 100) < 3) {
+            ctx.moveTo(drawX + rad * 1.8, drawY);
+            ctx.arc(drawX, drawY, rad * 1.8, 0, TWO_PI);
+          } else {
+            ctx.moveTo(drawX + rad, drawY);
+            ctx.arc(drawX, drawY, rad, 0, TWO_PI);
+          }
+        } else {
+          ctx.moveTo(drawX + rad, drawY);
+          ctx.arc(drawX, drawY, rad, 0, TWO_PI);
+        }
+      }
+
+      ctx.fill();
+      rafRef.current = requestAnimationFrame(tick);
+    }
+
+    doResize();
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    rafRef.current = requestAnimationFrame(tick);
+
+    rebuildRef.current = () => {
+      const { w, h } = sizeRef.current;
+      if (w > 0 && h > 0) buildDots(w, h);
+    };
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      clearInterval(speedInterval);
+      clearTimeout(resizeTimer);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', onMouseMove);
+    };
+  }, []);
+
+  useEffect(() => {
+    rebuildRef.current?.();
+  }, [dotRadius, dotSpacing]);
+
+  if (reducedMotion) return null;
+
+  return (
+    <div className="dot-field-container" {...rest}>
+      <canvas
+        ref={canvasRef}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+      />
+      <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+        <defs>
+          <radialGradient id={glowIdRef.current}>
+            <stop offset="0%" stopColor={glowColor} />
+            <stop offset="100%" stopColor="transparent" />
+          </radialGradient>
+        </defs>
+        <circle
+          ref={glowRef}
+          cx="-9999"
+          cy="-9999"
+          r={glowRadius}
+          fill={`url(#${glowIdRef.current})`}
+          style={{ opacity: 0, willChange: 'opacity' }}
+        />
+      </svg>
+    </div>
+  );
+});
+DotField.displayName = 'DotField';
+
+/* ===================== terminal demo ===================== */
+const SCRIPT = [
+  { t: 'cmd', text: 'escrow check .' },
+  { t: 'dim', text: 'discovering instructions from git root...' },
+  { t: 'dim', text: '  found AGENTS.md (root)' },
+  { t: 'dim', text: 'extracting candidate claims via Codex — read-only, no verdicts...' },
+  { t: 'dim', text: '  5 candidate claims found' },
+  { t: 'dim', text: 'validating deterministically against repository evidence...' },
+  { t: 'claim', status: 'fail', label: 'package_manager', text: 'instruction says npm', evidence: 'repo contains pnpm-lock.yaml' },
+  { t: 'claim', status: 'fail', label: 'package_script', text: '"npm test" → no script "test"', evidence: 'similar script found: "test:unit"' },
+  { t: 'claim', status: 'fail', label: 'dependency_present', text: 'Jest is not installed', evidence: 'Vitest found in devDependencies' },
+  { t: 'claim', status: 'fail', label: 'path_exists', text: 'docs/API_ARCHITECTURE.md', evidence: 'file does not exist' },
+  { t: 'claim', status: 'pass', label: 'command_runs', text: 'healthcheck command exits 0', evidence: 'ran inside an isolated Git worktree' },
+];
+
+function Terminal(){
+  const [visible, setVisible] = useState(0);
+  const [expanded, setExpanded] = useState({});
+  const [done, setDone] = useState(false);
+  const shellRef = useRef(null);
+
+  useEffect(() => {
+    if (reducedMotion) { setVisible(SCRIPT.length); setDone(true); return; }
+    if (visible >= SCRIPT.length) { setDone(true); return; }
+    const delay = SCRIPT[visible].t === 'cmd' ? 500 : SCRIPT[visible].t === 'claim' ? 460 : 320;
+    const id = setTimeout(() => setVisible(v => v + 1), delay);
+    return () => clearTimeout(id);
+  }, [visible]);
+
+  useEffect(() => {
+    if (reducedMotion || !window.gsap || !shellRef.current) return;
+    const el = shellRef.current;
+    function onMove(e){
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left, y = e.clientY - rect.top;
+      const rx = ((y - rect.height / 2) / (rect.height / 2)) * -4;
+      const ry = ((x - rect.width / 2) / (rect.width / 2)) * 4;
+      gsap.to(el, { rotateX: rx, rotateY: ry, duration: 0.4, ease: 'power2.out' });
+    }
+    function onLeave(){
+      gsap.to(el, { rotateX: 0, rotateY: 0, duration: 0.5, ease: 'power2.out' });
+    }
+    el.addEventListener('mousemove', onMove);
+    el.addEventListener('mouseleave', onLeave);
+    return () => { el.removeEventListener('mousemove', onMove); el.removeEventListener('mouseleave', onLeave); };
+  }, []);
+
+  const failCount = SCRIPT.slice(0, visible).filter(l => l.t === 'claim' && l.status === 'fail').length;
+
+  return (
+    <div className="term-shell" ref={shellRef}>
+      <div className="term-bar">
+        <span className="dot"></span><span className="dot"></span><span className="dot"></span>
+        <span className="path">~/repos/sample-monorepo</span>
+        <span className="chip">gpt-5.6-terra · read-only</span>
+      </div>
+      <div className="term-body">
+        {SCRIPT.slice(0, visible).map((line, i) => {
+          if (line.t === 'cmd') return <div key={i} className="term-line cmd">{line.text}</div>;
+          if (line.t === 'dim') return <div key={i} className="term-line dim">{line.text}</div>;
+          const open = !!expanded[i];
+          return (
+            <div
+              key={i}
+              className="term-line claim"
+              tabIndex={0}
+              role="button"
+              aria-expanded={open}
+              onClick={() => setExpanded(e => ({...e, [i]: !e[i]}))}
+              onKeyDown={(e)=>{ if(e.key==='Enter') setExpanded(x=>({...x,[i]:!x[i]})); }}
+            >
+              <span className={line.status === 'fail' ? 'status-fail' : 'status-pass'}>
+                {line.status === 'fail' ? '✗ FAIL' : '✓ PASS'}
+              </span>{'  '}{line.label} — {line.text}
+              {open && <span className="evidence">evidence: {line.evidence}</span>}
+            </div>
+          );
+        })}
+        {done && (
+          <div className="term-summary">
+            <span className="fail-ct">{failCount} failed</span>
+            <span className="pass-ct">0 passed</span>
+            <span style={{color:'var(--text-faint)'}}>0 warnings</span>
+          </div>
+        )}
+        {!done && <span className="cursor"></span>}
+      </div>
+    </div>
+  );
+}
+
+/* ===================== gsap scroll reveal ===================== */
+function Reveal({ children, className = '', tag: Tag = 'div' }){
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (reducedMotion || !window.gsap) { el.style.opacity = 1; return; }
+    if (window.ScrollTrigger) {
+      gsap.fromTo(el,
+        { opacity: 0, y: 26, scale: 0.98 },
+        {
+          opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 85%' }
+        }
+      );
+    } else {
+      el.style.opacity = 1;
+    }
+  }, []);
+  return <Tag ref={ref} className={`reveal ${className}`}>{children}</Tag>;
+}
+
+/* ===================== magnetic pill buttons ===================== */
+function Magnetic({ children, className, href, onClick }){
+  const ref = useRef(null);
+  useEffect(() => {
+    if (reducedMotion || !window.gsap || !ref.current) return;
+    const el = ref.current;
+    function onMove(e){
+      const rect = el.getBoundingClientRect();
+      const x = (e.clientX - rect.left - rect.width / 2) * 0.25;
+      const y = (e.clientY - rect.top - rect.height / 2) * 0.4;
+      gsap.to(el, { x, y, duration: 0.3, ease: 'power2.out' });
+    }
+    function onLeave(){ gsap.to(el, { x: 0, y: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' }); }
+    el.addEventListener('mousemove', onMove);
+    el.addEventListener('mouseleave', onLeave);
+    return () => { el.removeEventListener('mousemove', onMove); el.removeEventListener('mouseleave', onLeave); };
+  }, []);
+  return <a ref={ref} href={href || '#'} className={className} onClick={onClick}>{children}</a>;
+}
+
+/* TextType adapted for this dependency-free React/Babel page. */
+function TextType({ text, as: Component = 'div', typingSpeed = 42, pauseDuration = 1700, deletingSpeed = 22, className = '', showCursor = true }) {
+  const textArray = Array.isArray(text) ? text : [text];
+  const [displayedText, setDisplayedText] = useState(reducedMotion ? textArray[0] : '');
+  const [textIndex, setTextIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const cursorRef = useRef(null);
+
+  useEffect(() => {
+    if (!showCursor || reducedMotion || !window.gsap || !cursorRef.current) return;
+    gsap.to(cursorRef.current, { opacity: 0, duration: .5, repeat: -1, yoyo: true, ease: 'power2.inOut' });
+  }, [showCursor]);
+
+  useEffect(() => {
+    if (reducedMotion) return;
+    const activeText = textArray[textIndex];
+    let delay = deleting ? deletingSpeed : typingSpeed;
+    if (!deleting && displayedText === activeText) {
+      delay = pauseDuration;
+    } else if (deleting && displayedText === '') {
+      delay = 260;
+    }
+    const timer = setTimeout(() => {
+      if (!deleting && displayedText === activeText) {
+        setDeleting(true);
+      } else if (deleting && displayedText === '') {
+        setDeleting(false);
+        setTextIndex(index => (index + 1) % textArray.length);
+      } else if (deleting) {
+        setDisplayedText(value => value.slice(0, -1));
+      } else {
+        setDisplayedText(activeText.slice(0, displayedText.length + 1));
+      }
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [displayedText, textIndex, deleting, textArray, typingSpeed, deletingSpeed, pauseDuration]);
+
+  return createElement(Component, { className: `text-type ${className}` },
+    <span>{displayedText}</span>,
+    showCursor && <span ref={cursorRef} className="text-type__cursor">|</span>
+  );
+}
+
+/* A lightweight adaptation of React Bits' Shiny Text treatment. */
+function ShinyText({ children, className = '' }) {
+  return <span className={`shiny-text ${className}`}>{children}</span>;
+}
+
+function LiveCheck() {
+  const [target, setTarget] = useState('demo/sample-monorepo');
+  const [state, setState] = useState('idle');
+  const [result, setResult] = useState(null);
+  const run = async event => {
+    event.preventDefault();
+    setState('running');
+    setResult(null);
+    try {
+      const response = await fetch('/api/check', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ target })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Escrow could not run the check.');
+      setResult(data);
+      setState('done');
+    } catch (error) {
+      setResult({ error: error.message });
+      setState('error');
+    }
+  };
+  const summary = result?.report?.summary;
+  return (
+    <div className="live-check">
+      <form onSubmit={run}>
+        <input aria-label="Repository directory" value={target} onChange={event => setTarget(event.target.value)} />
+        <button className="pill pill-solid" type="submit" disabled={state === 'running'}>{state === 'running' ? 'Checking…' : 'Run live check'}</button>
+      </form>
+      <div className="live-check-note">Runs the real Escrow CLI locally. The included demo is safe and read-only.</div>
+      {result && (result.error ? (
+        <div className="live-check-result fail">{result.error}</div>
+      ) : (
+        <div className={`live-check-result ${result.report.overallStatus === 'fail' ? 'fail' : 'pass'}`}>
+          {`Escrow: ${result.report.overallStatus.toUpperCase()}\n${summary.passed} passed · ${summary.failed} failed · ${summary.inconclusive} inconclusive\n${result.report.claims.filter(claim => claim.status === 'failed').map(claim => `FAIL ${claim.type}: ${claim.evidence.at(-1)}`).join('\n')}`}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ===================== magic bento claim-type grid ===================== */
+const CLAIM_TYPES = [
+  { label: 'files', type: 'path_exists', desc: 'Referenced files and directories are resolved and confirmed present.' },
+  { label: 'tooling', type: 'package_manager', desc: 'Declared manager checked against lockfiles and packageManager metadata.' },
+  { label: 'scripts', type: 'package_script', desc: 'npm/pnpm/yarn commands normalized and matched against package.json.' },
+  { label: 'deps', type: 'dependency_present', desc: 'Named frameworks matched against real dependency entries.' },
+  { label: 'exec', type: 'command_runs', desc: 'Documented commands executed in an isolated worktree, scored on exit code.' },
+  { label: 'notes', type: 'advisory', desc: 'Non-verifiable guidance is recognized and excluded from pass/fail counts.' },
+];
+
+function BentoCard({ item }){
+  const cardRef = useRef(null);
+
+  function burst(){
+    if (reducedMotion || !window.gsap || !cardRef.current) return;
+    const card = cardRef.current;
+    const rect = card.getBoundingClientRect();
+    for (let i = 0; i < 6; i++){
+      const p = document.createElement('div');
+      p.className = 'bento-particle';
+      p.style.left = (rect.width / 2) + 'px';
+      p.style.top = (rect.height / 2) + 'px';
+      card.appendChild(p);
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 28 + Math.random() * 38;
+      gsap.fromTo(p,
+        { opacity: 1, scale: 0 },
+        {
+          opacity: 0, scale: 1,
+          x: Math.cos(angle) * dist, y: Math.sin(angle) * dist,
+          duration: 0.7 + Math.random() * 0.4, ease: 'power2.out',
+          onComplete: () => p.remove()
+        }
+      );
+    }
+  }
+
+  return (
+    <div className="bento-card" ref={cardRef} onMouseEnter={burst}>
+      <div className="bento-label">{item.label}</div>
+      <div className="bento-type">{item.type}</div>
+      <div className="bento-desc">{item.desc}</div>
+    </div>
+  );
+}
+
+function BentoGrid(){
+  const gridRef = useRef(null);
+
+  useEffect(() => {
+    if (reducedMotion || !gridRef.current) return;
+    const grid = gridRef.current;
+
+    function onMove(e){
+      grid.querySelectorAll('.bento-card').forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const relX = ((e.clientX - rect.left) / rect.width) * 100;
+        const relY = ((e.clientY - rect.top) / rect.height) * 100;
+        const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+        const dist = Math.hypot(e.clientX - cx, e.clientY - cy) - Math.max(rect.width, rect.height) / 2;
+        const eff = Math.max(0, dist);
+        const proximity = 100, fadeDist = 220;
+        let intensity = 0;
+        if (eff <= proximity) intensity = 1;
+        else if (eff <= fadeDist) intensity = (fadeDist - eff) / (fadeDist - proximity);
+        card.style.setProperty('--glow-x', relX + '%');
+        card.style.setProperty('--glow-y', relY + '%');
+        card.style.setProperty('--glow-intensity', intensity.toString());
+      });
+    }
+    function onLeave(){
+      grid.querySelectorAll('.bento-card').forEach(c => c.style.setProperty('--glow-intensity', '0'));
+    }
+    grid.addEventListener('mousemove', onMove);
+    grid.addEventListener('mouseleave', onLeave);
+    return () => { grid.removeEventListener('mousemove', onMove); grid.removeEventListener('mouseleave', onLeave); };
+  }, []);
+
+  return (
+    <div className="bento-grid" ref={gridRef}>
+      {CLAIM_TYPES.map((item, i) => <BentoCard key={i} item={item} />)}
+    </div>
+  );
+}
+
+/* ===================== app ===================== */
+function App(){
+  return (
+    <div>
+      <div className="nebula" aria-hidden="true"></div>
+      <div className="wrap">
+        <nav className="top">
+          <div className="logo"><span className="logo-mark">E</span>escrow</div>
+          <div className="nav-links">
+            <a href="#drift">Overview</a>
+            <a href="#principle">Principle</a>
+            <a href="#workflow">Agent workflow</a>
+          </div>
+          <Magnetic className="pill pill-solid" href="https://github.com/PlutonicSauce/escrow">View on GitHub</Magnetic>
+        </nav>
+
+        <div className="hero">
+          <div className="hero-mark">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6" stroke="url(#g)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><defs><linearGradient id="g" x1="0" y1="0" x2="24" y2="24"><stop stopColor="#9DB2FF"/><stop offset="1" stopColor="#6C5CE7"/></linearGradient></defs></svg>
+          </div>
+          <h1 className="headline">Executable tests for the <ShinyText>instructions</ShinyText> your agent trusts.</h1>
+          <p className="sub">
+            Escrow checks AGENTS.md against your actual repository — so a coding
+            agent never inherits a setup command, package manager, or framework claim
+            that quietly stopped being true.
+          </p>
+          <TextType
+            as="div"
+            className="hero-type"
+            text={[
+              'AI extracts claims. Deterministic code decides.',
+              'Catch stale instructions before an agent acts on them.',
+              'Evidence first. Safe repair second.'
+            ]}
+          />
+          <div className="hero-ctas">
+            <Magnetic className="pill pill-solid" href="#install">Run Escrow</Magnetic>
+            <Magnetic className="pill" href="#workflow">Agent workflow</Magnetic>
+          </div>
+          <div className="hero-note">exit 0 pass · exit 1 fail · exit 3 extraction failed</div>
+        </div>
+
+        <div className="term-float">
+          <Terminal />
+          <div className="term-caption">real deterministic output — not a mockup</div>
+          <LiveCheck />
+        </div>
+
+        <section id="drift" className="panel">
+          <Reveal className="panel-text">
+            <div className="panel-eyebrow">the failure mode</div>
+            <h2>Instructions drift. Agents don't notice.</h2>
+            <p>A repo migrates from npm to pnpm, a script gets renamed, Jest is swapped for
+            Vitest — and AGENTS.md keeps saying the old thing. Nothing enforces it stays true.</p>
+          </Reveal>
+          <Reveal className="panel-visual">
+            <div className="diff-card">
+              <div className="diff-row claim"><span className="diff-mark">·</span><span className="diff-text">Install dependencies with npm install.</span></div>
+              <div className="diff-row evidence"><span className="diff-mark">✗</span><span className="diff-text">repo contains pnpm-lock.yaml, not package-lock.json</span></div>
+              <div className="diff-row claim"><span className="diff-mark">·</span><span className="diff-text">Run tests with npm test.</span></div>
+              <div className="diff-row evidence"><span className="diff-mark">✗</span><span className="diff-text">no "test" script — nearest match is "test:unit"</span></div>
+              <div className="diff-row claim"><span className="diff-mark">·</span><span className="diff-text">Use Jest for unit tests.</span></div>
+              <div className="diff-row evidence"><span className="diff-mark">✗</span><span className="diff-text">devDependencies contain vitest, not jest</span></div>
+            </div>
+          </Reveal>
+        </section>
+
+        <section id="principle" className="panel rev">
+          <Reveal className="panel-text">
+            <div className="panel-eyebrow">the core rule</div>
+            <h2>AI never grades its own homework.</h2>
+            <p>Codex reads the instructions and proposes candidate claims. Every pass, fail,
+            warning, or block is computed afterward by plain, auditable code — never a
+            model's opinion.</p>
+          </Reveal>
+          <Reveal className="panel-visual">
+            <div className="principle-card">
+              <div className="principle-row">
+                <div className="principle-col">
+                  <div className="principle-tag">Codex · GPT-5.6</div>
+                  <h4>Finds and explains</h4>
+                  <p>Identifies verifiable claims and preserves exactly where each came from.</p>
+                </div>
+                <div className="principle-col">
+                  <div className="principle-tag">Deterministic code</div>
+                  <h4>Decides and proves</h4>
+                  <p>Checks every claim against real repository evidence — reproducible, never guessed.</p>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </section>
+
+        <section id="workflow" className="panel">
+          <Reveal className="panel-text">
+            <div className="panel-eyebrow">agent workflow</div>
+            <h2>Verify guidance before the agent acts on it.</h2>
+            <p>Run Escrow before a coding session to give Codex deterministic evidence about
+            the instructions it is about to follow — instead of discovering stale guidance three steps in.</p>
+          </Reveal>
+          <Reveal className="panel-visual">
+            <div className="mcp-code">
+<span className="c">// run before following AGENTS.md</span>{"\n"}
+<span className="k">$</span> escrow check . --target <span className="s">"packages/api"</span>{"\n"}
+{"\n"}
+<span className="c">// deterministic response</span>{"\n"}
+<span className="k">overallStatus</span>: <span className="s">"fail"</span>{"\n"}
+<span className="k">failed</span>: 3, <span className="k">passed</span>: 5{"\n"}
+<span className="c">// the agent now knows npm test won't work here</span>
+            </div>
+          </Reveal>
+        </section>
+
+        <section className="tags-section">
+          <Reveal className="head" tag="div">
+            <div className="panel-eyebrow">six claim types</div>
+            <h2>What actually gets checked</h2>
+          </Reveal>
+          <Reveal>
+            <BentoGrid />
+          </Reveal>
+        </section>
+
+        <section id="install" className="cta-final">
+          <Reveal>
+            <h2>Check your AGENTS.md today</h2>
+            <p>One command. Same evidence a human would want to see.</p>
+            <div className="mcp-code" style={{maxWidth:'560px', margin:'0 auto 28px', textAlign:'left'}}>
+<span className="c"># from an Escrow checkout</span>{"\n"}
+<span className="k">$</span> npm install{"\n"}
+<span className="k">$</span> npm run build{"\n"}
+<span className="k">$</span> node dist/index.js check .
+            </div>
+            <Magnetic className="pill pill-solid" href="https://github.com/PlutonicSauce/escrow">View on GitHub</Magnetic>
+          </Reveal>
+        </section>
+
+        <footer>
+          <div className="foot-row">
+            <div className="foot-links">
+              <a href="https://github.com/PlutonicSauce/escrow">GitHub</a>
+              <a href="../demo/sample-reports/broken-report.html">Sample report</a>
+              <a href="../docs/demo-script.md">Demo script</a>
+            </div>
+            <div className="foot-note">escrow · MIT · exit code 0 all checks passed</div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

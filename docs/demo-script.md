@@ -14,7 +14,7 @@ DEMO_HOME="$(mktemp -d)"
 DEMO_REPO="$DEMO_HOME/sample-monorepo"
 DANGER_REPO="$DEMO_HOME/dangerous-command-fixture"
 ARTIFACTS="$DEMO_HOME/reports"
-MODEL="${AGENTCONTRACT_DEMO_MODEL:-gpt-5.6-sol}"
+MODEL="${ESCROW_DEMO_MODEL:-gpt-5.6-terra}"
 
 cp -R demo/sample-monorepo "$DEMO_REPO"
 cp -R demo/dangerous-command-fixture "$DANGER_REPO"
