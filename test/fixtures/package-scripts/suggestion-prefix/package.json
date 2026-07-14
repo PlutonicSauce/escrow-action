@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "test:unit": "vitest run test/unit"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run test/unit",
+    "test unit": "vitest run test/unit"
+  }
+}

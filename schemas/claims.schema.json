@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "claims": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "type": { "type": "string", "const": "path_exists" },
+              "sourceFile": { "$ref": "#/$defs/nonEmptyString" },
+              "lineStart": { "$ref": "#/$defs/positiveInteger" },
+              "lineEnd": { "$ref": "#/$defs/positiveInteger" },
+              "originalText": { "$ref": "#/$defs/nonEmptyString" },
+              "normalizedValue": { "$ref": "#/$defs/nonEmptyString" },
+              "scopeDirectory": { "$ref": "#/$defs/nonEmptyString" },
+              "referencedPath": { "$ref": "#/$defs/nonEmptyString" },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "extractionReason": { "$ref": "#/$defs/nonEmptyString" }
+            },
+            "required": ["id", "type", "sourceFile", "lineStart", "lineEnd", "originalText", "normalizedValue", "scopeDirectory", "referencedPath", "confidence", "extractionReason"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "type": { "type": "string", "const": "package_manager" },
+              "sourceFile": { "$ref": "#/$defs/nonEmptyString" },
+              "lineStart": { "$ref": "#/$defs/positiveInteger" },
+              "lineEnd": { "$ref": "#/$defs/positiveInteger" },
+              "originalText": { "$ref": "#/$defs/nonEmptyString" },
+              "normalizedValue": { "$ref": "#/$defs/nonEmptyString" },
+              "scopeDirectory": { "$ref": "#/$defs/nonEmptyString" },
+              "packageManager": { "$ref": "#/$defs/packageManager" },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "extractionReason": { "$ref": "#/$defs/nonEmptyString" }
+            },
+            "required": ["id", "type", "sourceFile", "lineStart", "lineEnd", "originalText", "normalizedValue", "scopeDirectory", "packageManager", "confidence", "extractionReason"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "type": { "type": "string", "const": "package_script" },
+              "sourceFile": { "$ref": "#/$defs/nonEmptyString" },
+              "lineStart": { "$ref": "#/$defs/positiveInteger" },
+              "lineEnd": { "$ref": "#/$defs/positiveInteger" },
+              "originalText": { "$ref": "#/$defs/nonEmptyString" },
+              "normalizedValue": { "$ref": "#/$defs/nonEmptyString" },
+              "scopeDirectory": { "$ref": "#/$defs/nonEmptyString" },
+              "packageScript": { "$ref": "#/$defs/nonEmptyString" },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "extractionReason": { "$ref": "#/$defs/nonEmptyString" }
+            },
+            "required": ["id", "type", "sourceFile", "lineStart", "lineEnd", "originalText", "normalizedValue", "scopeDirectory", "packageScript", "confidence", "extractionReason"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "type": { "type": "string", "const": "package_script" },
+              "sourceFile": { "$ref": "#/$defs/nonEmptyString" },
+              "lineStart": { "$ref": "#/$defs/positiveInteger" },
+              "lineEnd": { "$ref": "#/$defs/positiveInteger" },
+              "originalText": { "$ref": "#/$defs/nonEmptyString" },
+              "normalizedValue": { "$ref": "#/$defs/nonEmptyString" },
+              "scopeDirectory": { "$ref": "#/$defs/nonEmptyString" },
+              "command": { "$ref": "#/$defs/nonEmptyString" },
+              "packageScript": { "$ref": "#/$defs/nonEmptyString" },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "extractionReason": { "$ref": "#/$defs/nonEmptyString" }
+            },
+            "required": ["id", "type", "sourceFile", "lineStart", "lineEnd", "originalText", "normalizedValue", "scopeDirectory", "command", "packageScript", "confidence", "extractionReason"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "type": { "type": "string", "const": "package_script" },
+              "sourceFile": { "$ref": "#/$defs/nonEmptyString" },
+              "lineStart": { "$ref": "#/$defs/positiveInteger" },
+              "lineEnd": { "$ref": "#/$defs/positiveInteger" },
+              "originalText": { "$ref": "#/$defs/nonEmptyString" },
+              "normalizedValue": { "$ref": "#/$defs/nonEmptyString" },
+              "scopeDirectory": { "$ref": "#/$defs/nonEmptyString" },
+              "packageManager": { "$ref": "#/$defs/packageManager" },
+              "packageScript": { "$ref": "#/$defs/nonEmptyString" },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "extractionReason": { "$ref": "#/$defs/nonEmptyString" }
+            },
+            "required": ["id", "type", "sourceFile", "lineStart", "lineEnd", "originalText", "normalizedValue", "scopeDirectory", "packageManager", "packageScript", "confidence", "extractionReason"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "type": { "type": "string", "const": "package_script" },
+              "sourceFile": { "$ref": "#/$defs/nonEmptyString" },
+              "lineStart": { "$ref": "#/$defs/positiveInteger" },
+              "lineEnd": { "$ref": "#/$defs/positiveInteger" },
+              "originalText": { "$ref": "#/$defs/nonEmptyString" },
+              "normalizedValue": { "$ref": "#/$defs/nonEmptyString" },
+              "scopeDirectory": { "$ref": "#/$defs/nonEmptyString" },
+              "command": { "$ref": "#/$defs/nonEmptyString" },
+              "packageManager": { "$ref": "#/$defs/packageManager" },
+              "packageScript": { "$ref": "#/$defs/nonEmptyString" },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "extractionReason": { "$ref": "#/$defs/nonEmptyString" }
+            },
+            "required": ["id", "type", "sourceFile", "lineStart", "lineEnd", "originalText", "normalizedValue", "scopeDirectory", "command", "packageManager", "packageScript", "confidence", "extractionReason"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "type": { "type": "string", "const": "dependency_present" },
+              "sourceFile": { "$ref": "#/$defs/nonEmptyString" },
+              "lineStart": { "$ref": "#/$defs/positiveInteger" },
+              "lineEnd": { "$ref": "#/$defs/positiveInteger" },
+              "originalText": { "$ref": "#/$defs/nonEmptyString" },
+              "normalizedValue": { "$ref": "#/$defs/nonEmptyString" },
+              "scopeDirectory": { "$ref": "#/$defs/nonEmptyString" },
+              "dependencyNames": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/nonEmptyString" },
+                "minItems": 1
+              },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "extractionReason": { "$ref": "#/$defs/nonEmptyString" }
+            },
+            "required": ["id", "type", "sourceFile", "lineStart", "lineEnd", "originalText", "normalizedValue", "scopeDirectory", "dependencyNames", "confidence", "extractionReason"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "type": { "type": "string", "const": "command_runs" },
+              "sourceFile": { "$ref": "#/$defs/nonEmptyString" },
+              "lineStart": { "$ref": "#/$defs/positiveInteger" },
+              "lineEnd": { "$ref": "#/$defs/positiveInteger" },
+              "originalText": { "$ref": "#/$defs/nonEmptyString" },
+              "normalizedValue": { "$ref": "#/$defs/nonEmptyString" },
+              "scopeDirectory": { "$ref": "#/$defs/nonEmptyString" },
+              "command": { "$ref": "#/$defs/nonEmptyString" },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "extractionReason": { "$ref": "#/$defs/nonEmptyString" }
+            },
+            "required": ["id", "type", "sourceFile", "lineStart", "lineEnd", "originalText", "normalizedValue", "scopeDirectory", "command", "confidence", "extractionReason"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "type": { "type": "string", "const": "advisory" },
+              "sourceFile": { "$ref": "#/$defs/nonEmptyString" },
+              "lineStart": { "$ref": "#/$defs/positiveInteger" },
+              "lineEnd": { "$ref": "#/$defs/positiveInteger" },
+              "originalText": { "$ref": "#/$defs/nonEmptyString" },
+              "normalizedValue": { "$ref": "#/$defs/nonEmptyString" },
+              "scopeDirectory": { "$ref": "#/$defs/nonEmptyString" },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "extractionReason": { "$ref": "#/$defs/nonEmptyString" }
+            },
+            "required": ["id", "type", "sourceFile", "lineStart", "lineEnd", "originalText", "normalizedValue", "scopeDirectory", "confidence", "extractionReason"],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "required": ["claims"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "positiveInteger": { "type": "integer", "minimum": 1 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "packageManager": { "type": "string", "enum": ["npm", "pnpm", "yarn"] }
+  }
+}

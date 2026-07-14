@@ -1,0 +1,1 @@
+Use root package scripts.

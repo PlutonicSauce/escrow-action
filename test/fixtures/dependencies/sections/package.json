@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "vitest": "1.0.0"
+  },
+  "devDependencies": {
+    "jest": "1.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "1.0.0"
+  },
+  "optionalDependencies": {
+    "eslint": "1.0.0"
+  }
+}

@@ -1,0 +1,50 @@
+AgentContract: FAIL
+Repository: /demo/sample-monorepo
+Target: /demo/sample-monorepo
+Summary: 1 passed, 4 failed, 0 warnings, 0 blocked, 0 inconclusive, 0 advisory, 0 overridden
+Instruction chain:
+  /demo/sample-monorepo/AGENTS.md (AGENTS.md)
+
+[FAIL] package_manager /demo/sample-monorepo/AGENTS.md:3
+  - Use npm as the package manager for this repository.
+  Normalized: npm
+  Evidence: Selected package-manager scope "/demo/sample-monorepo".
+  Evidence: Detected pnpm from lockfile "/demo/sample-monorepo/pnpm-lock.yaml".
+  Evidence: Detected pnpm from package.json#packageManager "pnpm@10.0.0" at "/demo/sample-monorepo/package.json".
+  Evidence: Instruction declares npm, but repository evidence indicates pnpm.
+
+[FAIL] path_exists /demo/sample-monorepo/AGENTS.md:4
+  - Read `docs/DELETED_SETUP.md` before changing workspace configuration.
+  Normalized: docs/DELETED_SETUP.md
+  Evidence: Resolved path "docs/DELETED_SETUP.md" from instruction directory "/demo/sample-monorepo" to "/demo/sample-monorepo/docs/DELETED_SETUP.md".
+  Evidence: Repository path does not exist: "/demo/sample-monorepo/docs/DELETED_SETUP.md".
+
+[FAIL] package_script /demo/sample-monorepo/AGENTS.md:5
+  - Run unit tests with `pnpm test`.
+  Normalized: test
+  Evidence: Normalized package command "pnpm test" to pnpm script "test".
+  Evidence: Selected nearest package.json "/demo/sample-monorepo/package.json" for claim scope "/demo/sample-monorepo".
+  Evidence: Package script "test" does not exist in "/demo/sample-monorepo/package.json".
+  Suggestion: Did you mean package script "test:unit"?
+
+[FAIL] dependency_present /demo/sample-monorepo/AGENTS.md:6
+  - Use the installed Jest dependency for unit tests.
+  Normalized: Jest
+  Evidence: Mapped framework or tool "Jest" to dependency "jest".
+  Evidence: Selected nearest package.json "/demo/sample-monorepo/package.json" for claim scope "/demo/sample-monorepo".
+  Evidence: Mapped dependency "jest" for "Jest" is absent from dependencies, devDependencies, peerDependencies, and optionalDependencies in "/demo/sample-monorepo/package.json".
+
+[PASS] command_runs /demo/sample-monorepo/AGENTS.md:7
+  - Run `node scripts/healthcheck.mjs` to verify the repository health check.
+  Normalized: node scripts/healthcheck.mjs
+  Evidence: Command exited with code 0 in an isolated Git worktree.
+  Evidence: Temporary worktree removed after command execution.
+  Evidence: Network-capable commands were blocked and common package/network clients were configured offline.
+  Command: node scripts/healthcheck.mjs
+  Working directory: /tmp/agentcontract-worktree-demo/checkout
+  Command status: PASSED
+  Exit code: 0
+  Duration: 103ms
+  Stdout:
+sample healthcheck passed
+

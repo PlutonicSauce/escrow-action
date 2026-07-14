@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "root-only": "echo root"
+  }
+}

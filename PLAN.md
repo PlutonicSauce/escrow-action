@@ -22,7 +22,10 @@ COMPLETE
 
 ## Milestone 1 — Project foundation
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
 
 ### Goal
 
@@ -73,11 +76,33 @@ README.md
 - missing repository path returns a useful error
 - unexpected internal errors return exit code `4`
 
+
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added a Node.js 20+ package with a strict TypeScript build and Vitest unit
+  test support.
+- Added a Commander CLI with `agentcontract check <repository>` and optional
+  `--target <directory>` parsing.
+- Added centralized exit codes and handling for Commander usage errors and
+  unexpected internal errors.
+- Added all four required tests plus a CLI help test; all five tests pass.
+- Verified the build, type checking, CLI help, invalid-argument exit code, and
+  repository/target parsing.
+- Kept the check handler intentionally empty so no Milestone 2 or later product
+  logic is present.
+
+
 ---
 
 ## Milestone 2 — Git root and instruction discovery
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -124,11 +149,34 @@ test/fixtures/discovery/
 - invalid target outside repository
 - no instruction files
 
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added canonical Git-root lookup supporting both `.git` directories and
+  worktree-style `.git` files.
+- Added target existence, directory, repository-boundary, and symlink-escape
+  checks.
+- Added deterministic local discovery that prefers non-empty overrides, falls
+  back to standard files, ignores whitespace-only files, and preserves
+  root-to-target order.
+- Added fixture-backed tests for all required scenarios, empty files, global
+  exclusion, repository non-modification, missing targets, and canonical path
+  behavior.
+- Verified build, strict type checking, all 20 tests, and CLI exit behavior.
+- Added no claim extraction, validation, Codex, execution, conflict, repair, or
+  reporting functionality.
+
+
 ---
 
 ## Milestone 3 — Claim and report foundations
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -175,7 +223,26 @@ test/unit/reporting/
 - JSON serialization
 - console source locations
 
----
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added explicit claim types, statuses, extracted/validated claim models, command
+  result shape, report summary, and shared report model.
+- Added strict Zod runtime schemas with source-range, confidence,
+  claim-specific-field, advisory-status, and failed-evidence checks.
+- Added deterministic status aggregation and overall-status calculation with
+  failure precedence and advisory exclusion from pass/fail totals.
+- Added pure console and JSON renderers using the shared report model, with no
+  AI-generated score.
+- Added manually constructed claim fixtures and coverage for every claim type,
+  every status, malformed data, totals, overall statuses, JSON serialization,
+  and console source locations.
+- Verified build, strict type checking, and all 69 tests.
+- Added no Codex integration, real validators, command execution, repair mode,
+  Markdown reports, or HTML reports.
+
+
 
 ## Milestone 4 — Path validation
 
@@ -222,11 +289,37 @@ test/fixtures/path-validation/
 - `../` escape attempt
 - unsupported wildcard
 
----
+
+
+- Completed on 2026-07-13.
+- Added a dedicated `path_exists` validator and a narrow claim-validation
+  dispatcher that deliberately rejects every later validator type.
+- Resolved relative references from the directory containing the source
+  instruction file and leading `/` references from the Git repository root.
+- Supported regular files and directories, with deterministic evidence for
+  passed, failed, and inconclusive results.
+- Rejected lexical repository escapes and source instruction files outside the
+  repository before inspecting candidate paths.
+- Inspected candidate paths one component at a time with `lstat`, never
+  following symbolic links; symlink and special-file paths are inconclusive.
+- Classified wildcard, home-expansion, environment-variable, URL-style,
+  double-slash, empty, whitespace-ambiguous, and Windows-style absolute
+  references as inconclusive.
+- Added focused fixtures and 16 tests covering all required cases plus
+  symlink escapes, external source files, ambiguous syntax, missing path data,
+  and narrow dispatcher behavior.
+- Verified build, strict type checking, and all 93 tests.
+- Added no dependencies, extraction, command execution, Codex integration, or
+  other claim validators.
+
+
 
 ## Milestone 5 — Package-manager validation
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
 
 ### Goal
 
@@ -270,11 +363,40 @@ package.json#packageManager
 - multiple lockfiles
 - no lockfile
 
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added deterministic detection for `package-lock.json`,
+  `npm-shrinkwrap.json`, `pnpm-lock.yaml`, `yarn.lock`, and supported
+  `package.json#packageManager` values.
+- Added nearest-scope selection from the instruction directory toward the
+  repository root, including broader-scope inheritance when a nested
+  `package.json` has no package-manager declaration.
+- Added passed, failed, warning, and inconclusive verdicts for consistent,
+  conflicting, contradictory, missing, malformed, and unsupported evidence.
+- Added structured repository-inconsistency data with Zod validation and
+  distinct console/JSON reporting for multiple lockfile types and
+  lockfile/metadata conflicts.
+- Added 31 focused fixture files and 18 tests covering npm, npm shrinkwrap,
+  pnpm, Yarn, metadata-only and consistent signals, instruction conflicts,
+  repository inconsistencies, no evidence, malformed and unsupported metadata,
+  nested scope selection and inheritance, source boundaries, schema validation,
+  and shared dispatcher behavior.
+- Verified build, strict type checking, and all 120 tests.
+- Added no dependencies, package-script validation, dependency validation,
+  command execution, Codex extraction, or repair behavior.
+
+
 ---
 
 ## Milestone 6 — Package-script validation
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -323,11 +445,37 @@ Use the nearest applicable `package.json`.
 - nearest nested package
 - no package file
 
----
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added deterministic normalization for `npm test`, `npm run <script>`,
+  `pnpm <script>`, `pnpm run <script>`, `yarn <script>`, and
+  `yarn run <script>` without executing commands.
+- Added safe nearest-`package.json` lookup from the claim scope toward the
+  canonical repository root, with repository-boundary and symlink protection.
+- Added passed, failed, and inconclusive validation for existing, missing,
+  unavailable, malformed, unsafe, or ambiguous package-script evidence.
+- Added deterministic Levenshtein/prefix similarity suggestions with stable
+  tie-breaking; suggestions never change a failed verdict.
+- Added 13 fixture files and 32 focused tests covering every required command
+  form, unsupported syntax, existing and missing scripts, suggestion behavior,
+  nested package precedence, absent and malformed package data, direct
+  extracted script metadata, metadata disagreement, source preservation,
+  deterministic evidence, and shared dispatcher behavior.
+- Verified build, strict type checking, and all 157 tests.
+- Added no dependencies, command execution, dependency validation, Codex
+  extraction, repair behavior, or Milestone 7 code.
+
+
 
 ## Milestone 7 — Dependency and framework validation
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -374,11 +522,37 @@ Playwright
 - Playwright variants
 - unknown framework
 
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added an explicit deterministic mapping table for Vitest, Jest, TypeScript,
+  ESLint, Prettier, Vite, Next.js, React, and the two supported Playwright
+  packages.
+- Added dependency validation across `dependencies`, `devDependencies`,
+  `peerDependencies`, and `optionalDependencies` using the nearest applicable
+  regular `package.json` within the canonical repository boundary.
+- Added passed, failed, and inconclusive results for present, absent, unknown,
+  unavailable, unsafe, and malformed dependency evidence, with deterministic
+  evidence for every result.
+- Added 19 fixture files and 29 focused tests covering every mapping and
+  dependency section, both Playwright alternatives, missing and unknown tools,
+  nested package scope, malformed metadata, repository boundaries, source
+  preservation, determinism, and shared dispatcher behavior.
+- Verified the build, strict type checking, and all 201 tests.
+- Added no dependencies, AI extraction, command execution, repair behavior, or
+  Milestone 8 functionality.
+
+
 ---
 
 ## Milestone 8 — Codex claim extraction
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -425,11 +599,44 @@ test/unit/extraction/
 - Codex process failure
 - timeout
 
----
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added non-interactive `codex exec` extraction using GPT-5.6 by default,
+  explicit CLI and environment model overrides, disabled approvals, a
+  read-only sandbox, ephemeral sessions, ignored user config, and a zero-byte
+  project-instruction budget so inspected instructions are supplied as data
+  rather than independently loaded Codex guidance.
+- Added a shipped JSON Schema and matching Zod response validation for exactly
+  the six supported claim types, required source fields, relevant optional
+  fields, and no AI-assigned statuses or verdicts.
+- Added deterministic verification that returned source files, scope
+  directories, inclusive line ranges, and original source text match the
+  supplied instruction chain.
+- Added extraction failure handling with exit code `3` for process startup,
+  nonzero exit, timeout, empty output, malformed JSON, schema failure, and
+  source-preservation failure.
+- Wired extracted path, package-manager, package-script, and dependency claims
+  into the existing deterministic validators while preserving command and
+  advisory claims for later processing without assigning AI verdicts.
+- Added 31 mocked extraction tests, CLI/error coverage, and a separately
+  configured manual integration test that is excluded from normal CI and runs
+  Codex only when explicitly enabled and installed.
+- Verified the build, strict type checking, all 250 normal tests, and the
+  disabled manual-test gate.
+- Added no command execution, conflict analysis, repair behavior, Markdown or
+  HTML reporting, or Milestone 9 functionality.
+
+
 
 ## Milestone 9 — Safe command execution
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -477,11 +684,43 @@ test/integration/command-execution/
 - cleanup after exception
 - keep-worktree behavior
 
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added deterministic command classification that rejects malformed or dynamic
+  shell input, privilege escalation, destructive system/filesystem operations,
+  remote or destructive Git operations, sensitive credential/browser paths,
+  interactive credential commands, outside-worktree paths, and network-capable
+  commands unless network access is explicit.
+- Added detached temporary Git worktrees, repository-relative scope mapping,
+  external-symlink rejection, sanitized execution environments, configurable
+  process-group timeouts, complete output capture, cleanup in `finally`, and
+  explicit `--keep-worktree` retention.
+- Added `--execute`, `--allow-network`, `--timeout`, and `--keep-worktree` CLI
+  wiring. Without `--execute`, command claims are deterministically
+  inconclusive and no policy or worktree subprocess runs.
+- Added command results to console output; the shared JSON report continues to
+  serialize the same command-result model, including blocked commands.
+- Added harmless fixture-backed unit and real Git integration coverage for
+  pass, failure, timeout, policy classes, nested scope, offline/sanitized
+  environment, cleanup after success/failure/exception, retained worktrees,
+  external symlinks, and active-checkout immutability.
+- Verified build, strict type checking, all 298 tests, one registered primary
+  worktree only, and no leaked AgentContract temporary directories.
+- Added no conflict analysis, repair behavior, Markdown/HTML reporting, or
+  Milestone 10 functionality.
+
+
 ---
 
 ## Milestone 10 — Scope, overrides, and conflicts
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -519,11 +758,47 @@ test/fixtures/nested-overrides/
 - same-scope separate-file contradiction
 - advisory statements do not create conflicts
 
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added deterministic target applicability from repository root through nested
+  subtrees, with repository-boundary checks and explicit specificity data.
+- Added target-specific override resolution that marks superseded broad claims
+  as `overridden` without treating valid nested guidance as a conflict; broad
+  claims remain effective for targets outside the nested subtree.
+- Added narrow deterministic conflicts for package-manager guidance, the same
+  package script assigned to different explicit package managers, and the
+  directly exclusive Jest/Vitest framework pair. Advisory, unrelated,
+  unsupported, and semantically uncertain relationships are ignored.
+- Added conflict records containing every involved claim id, type, normalized
+  value, declared scope, source file, and complete line range. Involved active
+  claims receive deterministic failed statuses and evidence.
+- Integrated target-scope analysis after deterministic validation, passed the
+  discovered target from the check command, added conflicts to the shared
+  report model, and rendered conflict source locations in console and JSON
+  output without giving Codex any applicability or verdict role.
+- Added 15 focused tests covering root/nested overrides, root behavior outside
+  a nested subtree, sibling scopes, same-file and separate-file contradictions,
+  package-script equivalence, Jest/Vitest conflicts, advisory and unrelated
+  claims, repository boundaries, report preservation, and extraction-pipeline
+  integration. Pure constructed claims were sufficient, so no unused fixture
+  repository was added.
+- Verified build, strict type checking, all 359 normal tests, and the explicitly
+  gated manual Codex test suite without making a live Codex request.
+- Added no general policy engine, AI conflict decisions, Markdown/HTML reports,
+  conflict explanations, repair behavior, or Milestone 11 functionality.
+
+
 ---
 
 ## Milestone 11 — Markdown and HTML reports
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -565,11 +840,52 @@ test/unit/reporting/htmlReporter.test.ts
 - empty report
 - command output rendering
 
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added pure Markdown and static HTML renderers that consume the same
+  `AgentContractReport` used by console and JSON output.
+- Added PR/submission-friendly Markdown with summary and instruction-chain
+  sections, complete claim details, deterministic evidence, suggestions,
+  explicit override/conflict sections, and native expandable command output.
+- Added one self-contained semantic HTML document with inline CSS, no scripts,
+  no React, no external assets, native `<details>` command output, complete
+  report content, and HTML escaping for every repository-derived value.
+- Hardened Markdown output with dynamic code fences, escaped prose, dynamic code
+  spans, and entity-escaped command metadata/stdout/stderr inside expandable raw
+  HTML boundaries.
+- Added `--json`, `--markdown`, and `--html` CLI output paths. The check command
+  constructs one report, renders console output from it, and passes that same
+  object to every requested file renderer. Deferred advisory claims are added
+  to the report with deterministic advisory status and evidence.
+- Connected deterministic overall failure to the existing check-failed exit
+  code `1` after console and requested report files have been produced.
+- Extended console output with instruction-chain and normalized-claim details,
+  while preserving the shared status totals and conflict output.
+- Added 11 tests covering format consistency, HTML escaping and standalone
+  structure, Markdown formatting and escaping, empty reports, failures,
+  advisories, blocked commands, multiline streams, conflicts, overrides, CLI
+  parsing, and shared check-command output generation.
+- Verified build, strict type checking, all 373 normal tests, and the gated
+  manual Codex test without making a live request.
+- Generated and inspected Markdown and HTML sample files from the shared rich
+  report fixture under `/private/tmp/agentcontract-m11-samples`; totals,
+  sections, output escaping, standalone structure, filters, conflicts, and
+  overrides were present as expected.
+- Added no hosted UI, React, server, repair mode, GitHub integration, or
+  Milestone 12 functionality.
+
+
 ---
 
 ## Milestone 12 — Restricted repair mode
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -614,11 +930,55 @@ test/integration/repair/
 - cleanup after rejected repair
 - mocked Codex failure
 
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added `agentcontract fix <repository>` with optional `--target`, `--apply`,
+  `--model`, `--execute`, `--allow-network`, `--timeout`, and
+  `--keep-worktree` support. Execution-related flags retain the existing
+  documented-command safety behavior.
+- Reused the shared repository-evaluation path so repair mode produces the same
+  deterministic `AgentContractReport` before and after the proposed change.
+- Added a schema-constrained, Zod-validated Codex repair response containing
+  only a unified diff. Codex runs non-interactively in a read-only sandbox with
+  shell, hooks, apps, network search, repository rules, and user config
+  disabled; it never edits either checkout directly.
+- Supplied Codex with the effective instruction chain, failed claims,
+  deterministic evidence, exact allowed files, and an explicit all-other-files
+  prohibition while requesting the smallest truthful documentation update.
+- Applied candidate patches only inside a detached temporary Git worktree.
+  Deterministic checks reject malformed patches, unsafe paths, untracked or
+  staged additions, deletions, renames, mode changes, symlinks, and every path
+  outside the exact effective-instruction allowlist.
+- Re-ran extraction, deterministic validators, scope/conflict analysis, and
+  requested command checks in the repair worktree. Repairs are rejected when
+  they add any new failed-claim signature or do not reduce the failure count.
+- Added before-report, verified diff, and after-report console output. Preview
+  mode cleans the worktree without changing the active repository; `--apply`
+  rechecks active-repository cleanliness and applies only the already verified
+  patch. Repair mode never commits or pushes.
+- Added 17 focused tests covering prompt boundaries, schema/runner failures,
+  CLI options, valid preview, active-repository preservation, real command
+  re-execution, source and package metadata rejection, new-failure rejection,
+  verified apply, malformed patches, Codex failure, and cleanup after success
+  and rejection.
+- Verified build, strict type checking, all 392 normal tests, a targeted
+  Git-backed preview demonstration, the gated manual Codex suite without a live
+  request, CLI help, and absence of unexpected temporary worktree directories.
+- Added no source repair, automatic commit/push, GitHub integration, demo
+  repository, or Milestone 13 functionality.
+
+
 ---
 
 ## Milestone 13 — Demo repository and final polish
 
+
 **Status:** NOT STARTED
+
+**Status:** COMPLETE
+
 
 ### Goal
 
@@ -667,10 +1027,67 @@ npm run typecheck
 
 Also verify README instructions on a clean checkout.
 
+
+### Completion notes
+
+- Completed on 2026-07-13.
+- Added the broken sample pnpm monorepo, its valid nested override, a separate
+  blocked `git push` fixture, and focused integration coverage for every demo
+  asset without adding a live-Codex CI dependency.
+- Added the MIT license, complete README, architecture guide, timed demo script,
+  and checked-in console, JSON, Markdown, and self-contained HTML reports.
+- A live schema-constrained GPT-5.6 run produced four intended deterministic
+  failures plus one isolated passing command; the nested run correctly
+  overrode only the root package-manager claim, and the dangerous command was
+  blocked without execution.
+- Live repair preview preserved the active repository, verified apply changed
+  only `AGENTS.md`, and the final `--execute` recheck passed all three remaining
+  claims. No temporary command or repair worktrees remained.
+- The measured end-to-end sequence was 158.57 seconds, below the three-minute
+  acceptance limit.
+- Verified a dependency-free temporary checkout with `npm ci`, build, and CLI
+  help. Final build and strict type checking passed; all 402 tests in 30 files
+  passed.
+- The live acceptance run exposed and fixed only narrow compatibility/prompt
+  defects: strict response-schema keywords, dependency `normalizedValue`
+  wording, and replacement text that could repeat a stale value. No product
+  feature or dependency was added.
+- Every Definition of Done item in `SPEC.md` is satisfied; detailed evidence and
+  known limitations are recorded in `IMPLEMENTATION.md`.
+
+
 ---
 
 ## Current milestone
 
+
 **Milestone 1 — Project foundation**
 
 Do not implement later milestones until Milestone 1 is complete and reviewed.
+
+**Milestone 1 — Project foundation is complete.**
+
+**Milestone 2 — Git root and instruction discovery is complete.**
+
+**Milestone 3 — Claim and report foundations is complete.**
+
+**Milestone 4 — Path validation is complete.**
+
+**Milestone 5 — Package-manager validation is complete.**
+
+**Milestone 6 — Package-script validation is complete.**
+
+**Milestone 7 — Dependency and framework validation is complete.**
+
+**Milestone 8 — Codex claim extraction is complete.**
+
+**Milestone 9 — Safe command execution is complete.**
+
+**Milestone 10 — Scope, overrides, and conflicts is complete.**
+
+**Milestone 11 — Markdown and HTML reports is complete.**
+
+**Milestone 12 — Restricted repair mode is complete.**
+
+**Milestone 13 — Demo repository and final polish is complete.**
+

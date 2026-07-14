@@ -1,0 +1,318 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
+
+import type { ExtractedClaim, ValidatedClaim } from "../models/claims.js";
+import type { InstructionConflict } from "../models/conflicts.js";
+import type { InstructionFile } from "../models/instructions.js";
+import { CodexExtractionError, getErrorMessage } from "../utils/errors.js";
+import type { CommandExecutionSettings } from "../validation/commandValidator.js";
+import {
+  analyzeClaimConflicts,
+  resolveEffectiveClaimScope,
+  type EffectiveClaimScope,
+} from "../validation/conflictValidator.js";
+import { validateClaim } from "../validation/validateClaim.js";
+import { codexExtractionResponseSchema } from "./claimSchema.js";
+import {
+  runCodexProcess,
+  type CodexProcessRunner,
+} from "./codexClient.js";
+import { buildExtractionPrompt } from "./extractionPrompt.js";
+
+export const DEFAULT_CODEX_MODEL = "gpt-5.6";
+export const DEFAULT_EXTRACTION_TIMEOUT_MS = 120_000;
+
+const DEFAULT_SCHEMA_PATH = fileURLToPath(
+  new URL("../../schemas/claims.schema.json", import.meta.url),
+);
+
+const EXISTING_VALIDATOR_TYPES = new Set<ExtractedClaim["type"]>([
+  "path_exists",
+  "package_manager",
+  "package_script",
+  "dependency_present",
+  "command_runs",
+]);
+
+export interface ExtractClaimsOptions {
+  repositoryRoot: string;
+  instructionChain: readonly InstructionFile[];
+  model?: string | undefined;
+  environment?: Readonly<Record<string, string | undefined>> | undefined;
+  timeoutMs?: number | undefined;
+  schemaPath?: string | undefined;
+  runner?: CodexProcessRunner | undefined;
+  commandExecution?: CommandExecutionSettings | undefined;
+  targetDirectory?: string | undefined;
+}
+
+export interface ExtractAndValidateResult {
+  claims: ExtractedClaim[];
+  validatedClaims: ValidatedClaim[];
+  deferredClaims: ExtractedClaim[];
+  conflicts: InstructionConflict[];
+  claimScopes: EffectiveClaimScope[];
+}
+
+export function resolveCodexModel(
+  explicitModel: string | undefined,
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): string {
+  if (explicitModel !== undefined) {
+    const model = explicitModel.trim();
+    if (model.length === 0) {
+      throw new CodexExtractionError("Codex model override cannot be empty.");
+    }
+    return model;
+  }
+
+  const environmentModel = environment.AGENTCONTRACT_CODEX_MODEL;
+  if (environmentModel !== undefined) {
+    const model = environmentModel.trim();
+    if (model.length === 0) {
+      throw new CodexExtractionError(
+        "AGENTCONTRACT_CODEX_MODEL cannot be empty.",
+      );
+    }
+    return model;
+  }
+
+  return DEFAULT_CODEX_MODEL;
+}
+
+function formatSchemaIssues(
+  issues: readonly { path: PropertyKey[]; message: string }[],
+): string {
+  return issues
+    .map((issue) => {
+      const path = issue.path.length === 0 ? "output" : issue.path.join(".");
+      return `${path}: ${issue.message}`;
+    })
+    .join("; ");
+}
+
+function verifyClaimSources(
+  claims: readonly ExtractedClaim[],
+  instructionChain: readonly InstructionFile[],
+): void {
+  const instructionsByPath = new Map(
+    instructionChain.map((instruction) => [instruction.path, instruction]),
+  );
+
+  for (const claim of claims) {
+    const instruction = instructionsByPath.get(claim.sourceFile);
+    if (instruction === undefined) {
+      throw new CodexExtractionError(
+        `Codex returned claim "${claim.id}" for an instruction file that was not supplied: "${claim.sourceFile}".`,
+      );
+    }
+    if (claim.scopeDirectory !== instruction.directory) {
+      throw new CodexExtractionError(
+        `Codex returned claim "${claim.id}" with scopeDirectory "${claim.scopeDirectory}" instead of supplied scope "${instruction.directory}".`,
+      );
+    }
+
+    const sourceLines = instruction.content.replaceAll("\r\n", "\n").split("\n");
+    if (claim.lineEnd > sourceLines.length) {
+      throw new CodexExtractionError(
+        `Codex returned claim "${claim.id}" with lineEnd ${claim.lineEnd}, but "${claim.sourceFile}" has ${sourceLines.length} lines.`,
+      );
+    }
+
+    const expectedText = sourceLines
+      .slice(claim.lineStart - 1, claim.lineEnd)
+      .join("\n");
+    if (claim.originalText !== expectedText) {
+      throw new CodexExtractionError(
+        `Codex did not preserve originalText for claim "${claim.id}" at ${claim.sourceFile}:${claim.lineStart}-${claim.lineEnd}.`,
+      );
+    }
+  }
+}
+
+export async function extractClaims(
+  options: ExtractClaimsOptions,
+): Promise<ExtractedClaim[]> {
+  if (options.instructionChain.length === 0) {
+    return [];
+  }
+
+  const model = resolveCodexModel(options.model, options.environment);
+  const prompt = buildExtractionPrompt(options.instructionChain);
+  const runner = options.runner ?? runCodexProcess;
+  let extractionWorkingDirectory: string;
+  try {
+    extractionWorkingDirectory = await mkdtemp(
+      join(tmpdir(), "agentcontract-extraction-"),
+    );
+  } catch (error: unknown) {
+    throw new CodexExtractionError(
+      `Unable to create an isolated Codex extraction directory: ${getErrorMessage(error)}`,
+    );
+  }
+
+  const request = {
+    args: [
+      "--ask-for-approval",
+      "never",
+      "--config",
+      "project_doc_max_bytes=0",
+      "--config",
+      'web_search="disabled"',
+      "--config",
+      "mcp_servers={}",
+      "--strict-config",
+      "--disable",
+      "shell_tool",
+      "--disable",
+      "shell_snapshot",
+      "--disable",
+      "hooks",
+      "--disable",
+      "apps",
+      "exec",
+      "--model",
+      model,
+      "--sandbox",
+      "read-only",
+      "--ephemeral",
+      "--ignore-user-config",
+      "--ignore-rules",
+      "--skip-git-repo-check",
+      "--output-schema",
+      options.schemaPath ?? DEFAULT_SCHEMA_PATH,
+      "--color",
+      "never",
+      "--cd",
+      extractionWorkingDirectory,
+      "-",
+    ],
+    cwd: extractionWorkingDirectory,
+    stdin: prompt,
+    timeoutMs: options.timeoutMs ?? DEFAULT_EXTRACTION_TIMEOUT_MS,
+  } as const;
+
+  let result;
+  try {
+    result = await runner(request);
+  } catch (error: unknown) {
+    throw new CodexExtractionError(
+      `Unable to start Codex claim extraction: ${getErrorMessage(error)}`,
+    );
+  } finally {
+    try {
+      await rm(extractionWorkingDirectory, { recursive: true, force: true });
+    } catch (error: unknown) {
+      throw new CodexExtractionError(
+        `Unable to remove the isolated Codex extraction directory: ${getErrorMessage(error)}`,
+      );
+    }
+  }
+
+  if (result.timedOut) {
+    throw new CodexExtractionError(
+      `Codex claim extraction timed out after ${request.timeoutMs}ms.`,
+    );
+  }
+  if (result.exitCode !== 0) {
+    const diagnostic = result.stderr.trim();
+    throw new CodexExtractionError(
+      diagnostic.length === 0
+        ? `Codex claim extraction exited with code ${String(result.exitCode)}.`
+        : `Codex claim extraction exited with code ${String(result.exitCode)}: ${diagnostic}`,
+    );
+  }
+
+  const output = result.stdout.trim();
+  if (output.length === 0) {
+    throw new CodexExtractionError("Codex claim extraction returned empty output.");
+  }
+
+  let parsedOutput: unknown;
+  try {
+    parsedOutput = JSON.parse(output) as unknown;
+  } catch (error: unknown) {
+    throw new CodexExtractionError(
+      `Codex claim extraction returned malformed JSON: ${getErrorMessage(error)}`,
+    );
+  }
+
+  const parsed = codexExtractionResponseSchema.safeParse(parsedOutput);
+  if (!parsed.success) {
+    throw new CodexExtractionError(
+      `Codex claim extraction failed schema validation: ${formatSchemaIssues(parsed.error.issues)}`,
+    );
+  }
+
+  verifyClaimSources(parsed.data.claims, options.instructionChain);
+  return parsed.data.claims;
+}
+
+export async function validateExtractedClaims(
+  claims: readonly ExtractedClaim[],
+  repositoryRoot: string,
+  commandExecution?: CommandExecutionSettings,
+  targetDirectory?: string,
+): Promise<ExtractAndValidateResult> {
+  const validatedClaims: ValidatedClaim[] = [];
+  const deferredClaims: ExtractedClaim[] = [];
+  const claimScopes =
+    targetDirectory === undefined
+      ? []
+      : claims.map((claim) =>
+          resolveEffectiveClaimScope(claim, {
+            repositoryRoot,
+            targetDirectory,
+          }),
+        );
+  const effectiveClaims =
+    targetDirectory === undefined
+      ? claims
+      : claims.filter((_, index) => claimScopes[index]?.applicable === true);
+
+  for (const claim of effectiveClaims) {
+    if (EXISTING_VALIDATOR_TYPES.has(claim.type)) {
+      validatedClaims.push(
+        await validateClaim(claim, { repositoryRoot, commandExecution }),
+      );
+    } else {
+      deferredClaims.push(claim);
+    }
+  }
+
+  if (targetDirectory === undefined) {
+    return {
+      claims: [...claims],
+      validatedClaims,
+      deferredClaims,
+      conflicts: [],
+      claimScopes,
+    };
+  }
+
+  const analysis = analyzeClaimConflicts(validatedClaims, {
+    repositoryRoot,
+    targetDirectory,
+  });
+  return {
+    claims: [...claims],
+    validatedClaims: analysis.claims,
+    deferredClaims,
+    conflicts: analysis.conflicts,
+    claimScopes,
+  };
+}
+
+export async function extractAndValidateClaims(
+  options: ExtractClaimsOptions,
+): Promise<ExtractAndValidateResult> {
+  const claims = await extractClaims(options);
+  return validateExtractedClaims(
+    claims,
+    options.repositoryRoot,
+    options.commandExecution,
+    options.targetDirectory,
+  );
+}

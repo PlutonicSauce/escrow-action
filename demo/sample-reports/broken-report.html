@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentContract Report — FAIL</title>
+<style>
+:root{color-scheme:light dark;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;line-height:1.5;--ok:#16803a;--bad:#b42318;--warn:#a15c00;--muted:#667085;--border:#98a2b3;--panel:color-mix(in srgb,Canvas 94%,CanvasText 6%)}
+*{box-sizing:border-box}body{margin:0;background:Canvas;color:CanvasText}main{max-width:1080px;margin:auto;padding:2rem 1rem 4rem}h1,h2,h3,h4{line-height:1.2}code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}code{overflow-wrap:anywhere}pre{padding:1rem;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:.5rem;white-space:pre-wrap}.meta,.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.75rem}.meta div,.summary div,.claim,.conflict{border:1px solid var(--border);border-radius:.65rem;padding:1rem;background:var(--panel)}.meta dt,.summary dt,dt{font-weight:700}.meta dd,.summary dd,dd{margin:0}.overall{font-size:1.25rem;font-weight:800}.overall-fail,.status-failed,.status-blocked{border-left:.4rem solid var(--bad)}.overall-pass{color:var(--ok)}.overall-pass_with_warnings{color:var(--warn)}.claim,.conflict{margin:1rem 0}.claim header{display:flex;gap:.75rem;align-items:center}.claim header h3{margin:.25rem 0}.status{font-weight:800}.status-passed{border-left:.4rem solid var(--ok)}.status-warning,.status-inconclusive{border-left:.4rem solid var(--warn)}.status-advisory,.status-overridden{border-left:.4rem solid var(--muted)}.filters{display:flex;flex-wrap:wrap;gap:.75rem;border:1px solid var(--border);border-radius:.5rem;padding:.75rem}.filters legend{font-weight:700}.filters label{cursor:pointer}.filters:has(#filter-passed:checked)+.claim-list .claim:not(.status-passed),.filters:has(#filter-failed:checked)+.claim-list .claim:not(.status-failed),.filters:has(#filter-warning:checked)+.claim-list .claim:not(.status-warning),.filters:has(#filter-blocked:checked)+.claim-list .claim:not(.status-blocked),.filters:has(#filter-inconclusive:checked)+.claim-list .claim:not(.status-inconclusive),.filters:has(#filter-advisory:checked)+.claim-list .claim:not(.status-advisory),.filters:has(#filter-overridden:checked)+.claim-list .claim:not(.status-overridden){display:none}details{margin-top:1rem;border:1px solid var(--border);border-radius:.5rem;padding:.75rem}summary{cursor:pointer;font-weight:700}.inconsistency,.suggestion{padding:.75rem;border-left:.25rem solid var(--warn)}footer{margin-top:2rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>AgentContract Report</h1>
+<p class="overall overall-fail">Overall status: FAIL</p>
+<dl class="meta">
+<div><dt>Repository</dt><dd><code>/demo/sample-monorepo</code></dd></div>
+<div><dt>Target directory</dt><dd><code>/demo/sample-monorepo</code></dd></div>
+<div><dt>Generated</dt><dd>2026-07-13T23:46:59.820Z</dd></div>
+<div><dt>Report version</dt><dd>0.1.0</dd></div>
+</dl>
+</header>
+<section aria-labelledby="summary"><h2 id="summary">Summary</h2><dl class="summary">
+<div data-summary-key="passed" data-summary-value="1"><dt>Passed</dt><dd>1</dd></div>
+<div data-summary-key="failed" data-summary-value="4"><dt>Failed</dt><dd>4</dd></div>
+<div data-summary-key="warnings" data-summary-value="0"><dt>Warnings</dt><dd>0</dd></div>
+<div data-summary-key="blocked" data-summary-value="0"><dt>Blocked</dt><dd>0</dd></div>
+<div data-summary-key="inconclusive" data-summary-value="0"><dt>Inconclusive</dt><dd>0</dd></div>
+<div data-summary-key="advisory" data-summary-value="0"><dt>Advisory</dt><dd>0</dd></div>
+<div data-summary-key="overridden" data-summary-value="0"><dt>Overridden</dt><dd>0</dd></div>
+</dl></section>
+<section aria-labelledby="instructions"><h2 id="instructions">Instruction chain</h2><ol><li><code>/demo/sample-monorepo/AGENTS.md</code> — <code>AGENTS.md</code> in <code>/demo/sample-monorepo</code></li></ol></section>
+<section aria-labelledby="claims"><h2 id="claims">Claims</h2><fieldset class="filters"><legend>Filter claims by status</legend>
+<label><input id="filter-all" type="radio" name="claim-filter" checked> All</label>
+<label><input id="filter-passed" type="radio" name="claim-filter"> PASS</label>
+<label><input id="filter-failed" type="radio" name="claim-filter"> FAIL</label>
+<label><input id="filter-warning" type="radio" name="claim-filter"> WARNING</label>
+<label><input id="filter-blocked" type="radio" name="claim-filter"> BLOCKED</label>
+<label><input id="filter-inconclusive" type="radio" name="claim-filter"> INCONCLUSIVE</label>
+<label><input id="filter-advisory" type="radio" name="claim-filter"> ADVISORY</label>
+<label><input id="filter-overridden" type="radio" name="claim-filter"> OVERRIDDEN</label>
+</fieldset>
+<div class="claim-list"><article class="claim status-failed">
+<header><span class="status">FAIL</span><h3>package manager</h3></header>
+<dl>
+<dt>Source</dt><dd><code>/demo/sample-monorepo/AGENTS.md:3</code></dd>
+<dt>Scope</dt><dd><code>/demo/sample-monorepo</code></dd>
+</dl>
+<h4>Original instruction</h4>
+<pre><code>- Use npm as the package manager for this repository.</code></pre>
+<h4>Normalized claim</h4>
+<pre><code>npm</code></pre>
+<h4>Deterministic evidence</h4>
+<ul><li>Selected package-manager scope &quot;/demo/sample-monorepo&quot;.</li><li>Detected pnpm from lockfile &quot;/demo/sample-monorepo/pnpm-lock.yaml&quot;.</li><li>Detected pnpm from package.json#packageManager &quot;pnpm@10.0.0&quot; at &quot;/demo/sample-monorepo/package.json&quot;.</li><li>Instruction declares npm, but repository evidence indicates pnpm.</li></ul>
+
+</article>
+<article class="claim status-failed">
+<header><span class="status">FAIL</span><h3>path exists</h3></header>
+<dl>
+<dt>Source</dt><dd><code>/demo/sample-monorepo/AGENTS.md:4</code></dd>
+<dt>Scope</dt><dd><code>/demo/sample-monorepo</code></dd>
+</dl>
+<h4>Original instruction</h4>
+<pre><code>- Read `docs/DELETED_SETUP.md` before changing workspace configuration.</code></pre>
+<h4>Normalized claim</h4>
+<pre><code>docs/DELETED_SETUP.md</code></pre>
+<h4>Deterministic evidence</h4>
+<ul><li>Resolved path &quot;docs/DELETED_SETUP.md&quot; from instruction directory &quot;/demo/sample-monorepo&quot; to &quot;/demo/sample-monorepo/docs/DELETED_SETUP.md&quot;.</li><li>Repository path does not exist: &quot;/demo/sample-monorepo/docs/DELETED_SETUP.md&quot;.</li></ul>
+
+</article>
+<article class="claim status-failed">
+<header><span class="status">FAIL</span><h3>package script</h3></header>
+<dl>
+<dt>Source</dt><dd><code>/demo/sample-monorepo/AGENTS.md:5</code></dd>
+<dt>Scope</dt><dd><code>/demo/sample-monorepo</code></dd>
+</dl>
+<h4>Original instruction</h4>
+<pre><code>- Run unit tests with `pnpm test`.</code></pre>
+<h4>Normalized claim</h4>
+<pre><code>test</code></pre>
+<h4>Deterministic evidence</h4>
+<ul><li>Normalized package command &quot;pnpm test&quot; to pnpm script &quot;test&quot;.</li><li>Selected nearest package.json &quot;/demo/sample-monorepo/package.json&quot; for claim scope &quot;/demo/sample-monorepo&quot;.</li><li>Package script &quot;test&quot; does not exist in &quot;/demo/sample-monorepo/package.json&quot;.</li></ul>
+<p class="suggestion"><strong>Suggestion:</strong> Did you mean package script &quot;test:unit&quot;?</p>
+</article>
+<article class="claim status-failed">
+<header><span class="status">FAIL</span><h3>dependency present</h3></header>
+<dl>
+<dt>Source</dt><dd><code>/demo/sample-monorepo/AGENTS.md:6</code></dd>
+<dt>Scope</dt><dd><code>/demo/sample-monorepo</code></dd>
+</dl>
+<h4>Original instruction</h4>
+<pre><code>- Use the installed Jest dependency for unit tests.</code></pre>
+<h4>Normalized claim</h4>
+<pre><code>Jest</code></pre>
+<h4>Deterministic evidence</h4>
+<ul><li>Mapped framework or tool &quot;Jest&quot; to dependency &quot;jest&quot;.</li><li>Selected nearest package.json &quot;/demo/sample-monorepo/package.json&quot; for claim scope &quot;/demo/sample-monorepo&quot;.</li><li>Mapped dependency &quot;jest&quot; for &quot;Jest&quot; is absent from dependencies, devDependencies, peerDependencies, and optionalDependencies in &quot;/demo/sample-monorepo/package.json&quot;.</li></ul>
+
+</article>
+<article class="claim status-passed">
+<header><span class="status">PASS</span><h3>command runs</h3></header>
+<dl>
+<dt>Source</dt><dd><code>/demo/sample-monorepo/AGENTS.md:7</code></dd>
+<dt>Scope</dt><dd><code>/demo/sample-monorepo</code></dd>
+</dl>
+<h4>Original instruction</h4>
+<pre><code>- Run `node scripts/healthcheck.mjs` to verify the repository health check.</code></pre>
+<h4>Normalized claim</h4>
+<pre><code>node scripts/healthcheck.mjs</code></pre>
+<h4>Deterministic evidence</h4>
+<ul><li>Command exited with code 0 in an isolated Git worktree.</li><li>Temporary worktree removed after command execution.</li><li>Network-capable commands were blocked and common package/network clients were configured offline.</li></ul>
+<details class="command-output">
+<summary>Command output</summary>
+<dl>
+<dt>Command</dt><dd><code>node scripts/healthcheck.mjs</code></dd>
+<dt>Working directory</dt><dd><code>/tmp/agentcontract-worktree-demo/checkout</code></dd>
+<dt>Status</dt><dd>PASSED</dd>
+<dt>Exit code</dt><dd>0</dd>
+<dt>Duration</dt><dd>103ms</dd>
+</dl>
+<h4>stdout</h4>
+<pre><code>sample healthcheck passed
+</code></pre>
+<h4>stderr</h4>
+<pre><code></code></pre>
+</details>
+</article></div></section>
+<section aria-labelledby="overrides"><h2 id="overrides">Overrides</h2><p>No claims were overridden.</p></section>
+<section aria-labelledby="conflicts"><h2 id="conflicts">Conflicts</h2><p>No instruction conflicts were detected.</p></section>
+<footer>Generated by AgentContract.</footer>
+</main>
+</body>
+</html>

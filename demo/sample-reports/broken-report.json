@@ -1,0 +1,136 @@
+{
+  "version": "0.1.0",
+  "generatedAt": "2026-07-13T23:46:59.820Z",
+  "repositoryRoot": "/demo/sample-monorepo",
+  "targetDirectory": "/demo/sample-monorepo",
+  "instructionChain": [
+    {
+      "path": "/demo/sample-monorepo/AGENTS.md",
+      "directory": "/demo/sample-monorepo",
+      "fileName": "AGENTS.md",
+      "content": "# Sample monorepo instructions\n\n- Use npm as the package manager for this repository.\n- Read `docs/DELETED_SETUP.md` before changing workspace configuration.\n- Run unit tests with `pnpm test`.\n- Use the installed Jest dependency for unit tests.\n- Run `node scripts/healthcheck.mjs` to verify the repository health check.\n"
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim-3-package-manager-npm",
+      "type": "package_manager",
+      "sourceFile": "/demo/sample-monorepo/AGENTS.md",
+      "lineStart": 3,
+      "lineEnd": 3,
+      "originalText": "- Use npm as the package manager for this repository.",
+      "normalizedValue": "npm",
+      "scopeDirectory": "/demo/sample-monorepo",
+      "packageManager": "npm",
+      "confidence": 0.99,
+      "extractionReason": "Explicitly identifies npm as the repository package manager.",
+      "status": "failed",
+      "evidence": [
+        "Selected package-manager scope \"/demo/sample-monorepo\".",
+        "Detected pnpm from lockfile \"/demo/sample-monorepo/pnpm-lock.yaml\".",
+        "Detected pnpm from package.json#packageManager \"pnpm@10.0.0\" at \"/demo/sample-monorepo/package.json\".",
+        "Instruction declares npm, but repository evidence indicates pnpm."
+      ]
+    },
+    {
+      "id": "claim-4-path-docs-deleted-setup",
+      "type": "path_exists",
+      "sourceFile": "/demo/sample-monorepo/AGENTS.md",
+      "lineStart": 4,
+      "lineEnd": 4,
+      "originalText": "- Read `docs/DELETED_SETUP.md` before changing workspace configuration.",
+      "normalizedValue": "docs/DELETED_SETUP.md",
+      "scopeDirectory": "/demo/sample-monorepo",
+      "referencedPath": "docs/DELETED_SETUP.md",
+      "confidence": 0.96,
+      "extractionReason": "Explicitly references a repository-relative file path to be read.",
+      "status": "failed",
+      "evidence": [
+        "Resolved path \"docs/DELETED_SETUP.md\" from instruction directory \"/demo/sample-monorepo\" to \"/demo/sample-monorepo/docs/DELETED_SETUP.md\".",
+        "Repository path does not exist: \"/demo/sample-monorepo/docs/DELETED_SETUP.md\"."
+      ]
+    },
+    {
+      "id": "claim-5-package-script-test",
+      "type": "package_script",
+      "sourceFile": "/demo/sample-monorepo/AGENTS.md",
+      "lineStart": 5,
+      "lineEnd": 5,
+      "originalText": "- Run unit tests with `pnpm test`.",
+      "normalizedValue": "test",
+      "scopeDirectory": "/demo/sample-monorepo",
+      "command": "pnpm test",
+      "packageManager": "pnpm",
+      "packageScript": "test",
+      "confidence": 0.99,
+      "extractionReason": "Explicitly supplies the pnpm command for the test package script.",
+      "status": "failed",
+      "evidence": [
+        "Normalized package command \"pnpm test\" to pnpm script \"test\".",
+        "Selected nearest package.json \"/demo/sample-monorepo/package.json\" for claim scope \"/demo/sample-monorepo\".",
+        "Package script \"test\" does not exist in \"/demo/sample-monorepo/package.json\"."
+      ],
+      "suggestion": "Did you mean package script \"test:unit\"?"
+    },
+    {
+      "id": "claim-6-dependency-jest",
+      "type": "dependency_present",
+      "sourceFile": "/demo/sample-monorepo/AGENTS.md",
+      "lineStart": 6,
+      "lineEnd": 6,
+      "originalText": "- Use the installed Jest dependency for unit tests.",
+      "normalizedValue": "Jest",
+      "scopeDirectory": "/demo/sample-monorepo",
+      "dependencyNames": [
+        "jest"
+      ],
+      "confidence": 0.98,
+      "extractionReason": "Explicitly states that the Jest dependency is installed.",
+      "status": "failed",
+      "evidence": [
+        "Mapped framework or tool \"Jest\" to dependency \"jest\".",
+        "Selected nearest package.json \"/demo/sample-monorepo/package.json\" for claim scope \"/demo/sample-monorepo\".",
+        "Mapped dependency \"jest\" for \"Jest\" is absent from dependencies, devDependencies, peerDependencies, and optionalDependencies in \"/demo/sample-monorepo/package.json\"."
+      ]
+    },
+    {
+      "id": "claim-7-command-healthcheck",
+      "type": "command_runs",
+      "sourceFile": "/demo/sample-monorepo/AGENTS.md",
+      "lineStart": 7,
+      "lineEnd": 7,
+      "originalText": "- Run `node scripts/healthcheck.mjs` to verify the repository health check.",
+      "normalizedValue": "node scripts/healthcheck.mjs",
+      "scopeDirectory": "/demo/sample-monorepo",
+      "command": "node scripts/healthcheck.mjs",
+      "confidence": 0.99,
+      "extractionReason": "Explicitly instructs running the Node.js health-check command.",
+      "status": "passed",
+      "evidence": [
+        "Command exited with code 0 in an isolated Git worktree.",
+        "Temporary worktree removed after command execution.",
+        "Network-capable commands were blocked and common package/network clients were configured offline."
+      ],
+      "commandResult": {
+        "command": "node scripts/healthcheck.mjs",
+        "workingDirectory": "/tmp/agentcontract-worktree-demo/checkout",
+        "status": "passed",
+        "exitCode": 0,
+        "stdout": "sample healthcheck passed\n",
+        "stderr": "",
+        "durationMs": 103
+      }
+    }
+  ],
+  "conflicts": [],
+  "summary": {
+    "passed": 1,
+    "failed": 4,
+    "warnings": 0,
+    "blocked": 0,
+    "inconclusive": 0,
+    "advisory": 0,
+    "overridden": 0
+  },
+  "overallStatus": "fail"
+}

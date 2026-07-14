@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "api:test": "vitest run",
+    "lint": "eslint src"
+  }
+}
