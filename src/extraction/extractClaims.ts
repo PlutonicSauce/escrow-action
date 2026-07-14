@@ -158,7 +158,7 @@ function hydrateClaimSources(
     instructionChain.map((instruction) => [instruction.path, instruction]),
   );
 
-  const hydratedClaims = claims.map((claim): ExtractedClaim => {
+  const hydratedClaims = claims.flatMap((claim): ExtractedClaim[] => {
     const instruction = instructionsByPath.get(claim.sourceFile);
     if (instruction === undefined) {
       throw new CodexExtractionError(
@@ -178,6 +178,12 @@ function hydrateClaimSources(
         index === selectedLines.length - 1 ? line.text : line.text + line.lineEnding,
       )
       .join("");
+    // Local models can occasionally select a blank separator line. It cannot
+    // represent a repository instruction, so discard only that malformed
+    // candidate and continue validating the remaining model output.
+    if (originalText.trim().length === 0) {
+      return [];
+    }
     const hydratedClaim = {
       ...claim,
       originalText,
@@ -189,7 +195,7 @@ function hydrateClaimSources(
         `Hydrated claim "${claim.id}" failed ExtractedClaim schema validation: ${formatSchemaIssues(parsedHydratedClaim.error.issues)}.`,
       );
     }
-    return parsedHydratedClaim.data;
+    return [parsedHydratedClaim.data];
   });
 
   return hydratedClaims.filter((claim) => {

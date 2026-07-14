@@ -248,6 +248,41 @@ describe("extractClaims", () => {
     expect(extractedClaimSchema.parse(hydrated)).toEqual(hydrated);
   });
 
+  it("discards a model claim that points only to a blank separator line", async () => {
+    const instruction = {
+      ...INSTRUCTION,
+      content: "\n- Prefer focused changes.",
+    };
+    const blankClaim: RawExtractedClaim = {
+      id: "blank-line",
+      type: "advisory",
+      sourceFile: SOURCE_FILE,
+      lineStart: 1,
+      lineEnd: 1,
+      normalizedValue: "blank",
+      confidence: 0.1,
+      extractionReason: "Incorrect blank-line extraction.",
+    };
+    const validClaim: RawExtractedClaim = {
+      ...blankClaim,
+      id: "valid-line",
+      lineStart: 2,
+      lineEnd: 2,
+      normalizedValue: "focused changes",
+      confidence: 1,
+      extractionReason: "Explicit guidance.",
+    };
+
+    const hydrated = await extractClaims({
+      repositoryRoot: REPOSITORY_ROOT,
+      instructionChain: [instruction],
+      runner: mockRunner(result({ stdout: JSON.stringify({ claims: [blankClaim, validClaim] }) })),
+    });
+
+    expect(hydrated).toHaveLength(1);
+    expect(hydrated[0]?.id).toBe("valid-line");
+  });
+
   it("preserves multiline indentation, list markers, and backticks exactly", async () => {
     const content = [
       "1. Run the checks:",
