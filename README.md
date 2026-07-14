@@ -223,6 +223,21 @@ default remains configurable through `ESCROW_CODEX_MODEL`.
 Codex never assigns pass/fail/warning/blocked/inconclusive/overridden verdicts,
 never determines instruction applicability, and never applies a repair.
 
+### Local Ollama mode (no API key)
+
+Escrow can use a local Ollama model through Codex OSS mode. Install Ollama,
+download a model, then opt in explicitly:
+
+```bash
+ollama run gpt-oss:20b
+export ESCROW_CODEX_OSS=ollama
+escrow ui . --model gpt-oss:20b
+```
+
+This uses your computer instead of an OpenAI API key. It does not run on a
+standard GitHub-hosted runner: use Escrow locally or configure a self-hosted
+runner that can reach your Ollama service.
+
 ## Safety model
 
 - AI output is constrained with JSON Schema and validated again with Zod.

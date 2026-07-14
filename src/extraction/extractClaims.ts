@@ -23,6 +23,7 @@ import {
   rawCodexExtractionResponseSchema,
 } from "./claimSchema.js";
 import {
+  getCodexLocalProviderArgs,
   runCodexProcess,
   type CodexProcessRunner,
 } from "./codexClient.js";
@@ -251,6 +252,7 @@ export async function extractClaims(
       "hooks",
       "--disable",
       "apps",
+      ...getCodexLocalProviderArgs(options.environment),
       "exec",
       "--model",
       model,

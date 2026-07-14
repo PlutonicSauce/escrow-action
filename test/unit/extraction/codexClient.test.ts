@@ -9,7 +9,10 @@ vi.mock("node:child_process", () => ({
   spawn: spawnMock,
 }));
 
-import { runCodexProcess } from "../../../src/extraction/codexClient.js";
+import {
+  getCodexLocalProviderArgs,
+  runCodexProcess,
+} from "../../../src/extraction/codexClient.js";
 
 interface FakeChildProcess extends EventEmitter {
   stdin: PassThrough;
@@ -64,5 +67,25 @@ describe("runCodexProcess", () => {
       },
     );
     expect(Buffer.concat(receivedStdin).toString("utf8")).toBe(hostileText);
+  });
+});
+
+describe("getCodexLocalProviderArgs", () => {
+  it("keeps hosted Codex as the default", () => {
+    expect(getCodexLocalProviderArgs({})).toEqual([]);
+  });
+
+  it("enables Ollama only when explicitly requested", () => {
+    expect(getCodexLocalProviderArgs({ ESCROW_CODEX_OSS: "ollama" })).toEqual([
+      "--oss",
+      "--local-provider",
+      "ollama",
+    ]);
+  });
+
+  it("rejects unsupported local providers", () => {
+    expect(() => getCodexLocalProviderArgs({ ESCROW_CODEX_OSS: "free-cloud" })).toThrow(
+      "ESCROW_CODEX_OSS must be one of",
+    );
   });
 });

@@ -2,6 +2,9 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 
 const MACOS_CODEX_APP_BINARY = "/Applications/Codex.app/Contents/Resources/codex";
+const LOCAL_PROVIDERS = ["ollama", "lmstudio"] as const;
+
+type LocalProvider = (typeof LOCAL_PROVIDERS)[number];
 
 /**
  * Use an explicit override first, then the bundled macOS app binary when the
@@ -16,6 +19,30 @@ export function resolveCodexExecutable(
     return MACOS_CODEX_APP_BINARY;
   }
   return "codex";
+}
+
+/**
+ * Select an explicitly requested local OSS provider. This is opt-in so the
+ * default Codex/API workflow remains unchanged.
+ */
+export function resolveCodexLocalProvider(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): LocalProvider | undefined {
+  const configured = environment.ESCROW_CODEX_OSS?.trim().toLowerCase();
+  if (configured === undefined || configured.length === 0) return undefined;
+  if ((LOCAL_PROVIDERS as readonly string[]).includes(configured)) {
+    return configured as LocalProvider;
+  }
+  throw new TypeError(
+    `ESCROW_CODEX_OSS must be one of: ${LOCAL_PROVIDERS.join(", ")}.`,
+  );
+}
+
+export function getCodexLocalProviderArgs(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): readonly string[] {
+  const provider = resolveCodexLocalProvider(environment);
+  return provider === undefined ? [] : ["--oss", "--local-provider", provider];
 }
 
 export interface CodexProcessRequest {

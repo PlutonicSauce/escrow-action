@@ -8,6 +8,7 @@ import { z } from "zod";
 import type { ValidatedClaim } from "../models/claims.js";
 import type { InstructionFile } from "../models/instructions.js";
 import {
+  getCodexLocalProviderArgs,
   runCodexProcess,
   type CodexProcessRunner,
 } from "../extraction/codexClient.js";
@@ -85,6 +86,7 @@ export async function generateRepair(
       "hooks",
       "--disable",
       "apps",
+      ...getCodexLocalProviderArgs(options.environment),
       "exec",
       "--model",
       model,
