@@ -66,6 +66,70 @@ No OpenAI SDK or application API key is read directly by AgentContract. Codex
 CLI owns authentication. The CLI may use a saved ChatGPT login or an API-key
 login, subject to the account and workspace configuration.
 
+## Judge Quick Test
+
+Supported on macOS or Linux. From the AgentContract checkout, use Node.js 20+,
+Git, npm, and an installed/authenticated Codex CLI. The model must be available
+to the authenticated account; override `AGENTCONTRACT_DEMO_MODEL` when needed.
+
+Copy and run this block. It creates a committed temporary copy, so the bundled
+demo and AgentContract checkout remain unchanged:
+
+```bash
+codex --version
+codex login status
+npm ci
+npm run build
+
+DEMO_HOME="$(mktemp -d)"
+DEMO_REPO="$DEMO_HOME/sample-monorepo"
+HTML_REPORT="$DEMO_HOME/agentcontract-report.html"
+MODEL="${AGENTCONTRACT_DEMO_MODEL:-gpt-5.6-sol}"
+
+cp -R demo/sample-monorepo "$DEMO_REPO"
+git -C "$DEMO_REPO" init --quiet
+git -C "$DEMO_REPO" config user.name "AgentContract Judge"
+git -C "$DEMO_REPO" config user.email "judge@example.invalid"
+git -C "$DEMO_REPO" add .
+git -C "$DEMO_REPO" commit --quiet -m "judge demo baseline"
+
+node dist/index.js check "$DEMO_REPO" --execute --model "$MODEL" \
+  --html "$HTML_REPORT"
+CHECK_EXIT=$?
+test "$CHECK_EXIT" -eq 1
+
+printf 'Open this static report in a browser: %s\n' "$HTML_REPORT"
+test -s "$HTML_REPORT"
+
+node dist/index.js fix "$DEMO_REPO" --model "$MODEL"
+git -C "$DEMO_REPO" status --short
+
+node dist/index.js fix "$DEMO_REPO" --apply --model "$MODEL"
+git -C "$DEMO_REPO" diff --name-only
+sed -n '1,8p' "$DEMO_REPO/AGENTS.md"
+node dist/index.js check "$DEMO_REPO" --execute --model "$MODEL"
+```
+
+Expected output:
+
+- The first check prints `AgentContract: FAIL`, with `1 passed, 4 failed`, and
+  exits `1`. The failures cover package manager, deleted path, missing script,
+  and absent Jest; the health command passes in an isolated worktree.
+- `$HTML_REPORT` is a non-empty, self-contained report with the same totals,
+  source locations, evidence, and expandable command output.
+- Preview prints `=== Verified instruction diff ===` and an after-report with
+  zero failures and one unexecuted command; the passed count can include
+  additional valid claims. The following `git status --short` prints nothing
+  because preview does not change the active fixture.
+- Verified apply prints only `AGENTS.md` from `git diff --name-only`. The file
+  now says pnpm and `pnpm test:unit`; the final check prints
+  `AgentContract: PASS` with at least `3 passed, 0 failed`.
+
+Codex output can vary. If preview or apply rejects malformed output, confirm
+`git status --short` is empty and rerun that same command, or set
+`AGENTCONTRACT_DEMO_MODEL` to an available GPT-5.6 variant. AgentContract
+rejects an invalid proposal without changing the fixture.
+
 ## Check a repository
 
 ```bash
