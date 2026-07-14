@@ -166,10 +166,11 @@ function hydrateClaimSources(
       );
     }
     const sourceLines = splitSourceLines(instruction.content);
-    if (claim.lineEnd > sourceLines.length) {
-      throw new CodexExtractionError(
-        `Codex returned claim "${claim.id}" with lineEnd ${claim.lineEnd}, but "${claim.sourceFile}" has ${sourceLines.length} lines.`,
-      );
+    if (claim.lineStart > sourceLines.length || claim.lineEnd > sourceLines.length) {
+      // A model-authored line range outside the supplied source cannot be
+      // evidence. Ignore that candidate while preserving valid claims from the
+      // same extraction response.
+      return [];
     }
 
     const selectedLines = sourceLines.slice(claim.lineStart - 1, claim.lineEnd);

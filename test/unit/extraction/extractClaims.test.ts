@@ -283,6 +283,29 @@ describe("extractClaims", () => {
     expect(hydrated[0]?.id).toBe("valid-line");
   });
 
+  it("discards a model claim with a source range outside the instruction file", async () => {
+    const invalidClaim: RawExtractedClaim = {
+      id: "outside-source",
+      type: "advisory",
+      sourceFile: SOURCE_FILE,
+      lineStart: 99,
+      lineEnd: 99,
+      normalizedValue: "outside source",
+      confidence: 0.1,
+      extractionReason: "Incorrect line range.",
+    };
+    const validClaim = toRawClaim(VALID_CLAIMS[5]!);
+
+    const hydrated = await extractClaims({
+      repositoryRoot: REPOSITORY_ROOT,
+      instructionChain: [INSTRUCTION],
+      runner: mockRunner(result({ stdout: JSON.stringify({ claims: [invalidClaim, validClaim] }) })),
+    });
+
+    expect(hydrated).toHaveLength(1);
+    expect(hydrated[0]?.id).toBe(validClaim.id);
+  });
+
   it("preserves multiline indentation, list markers, and backticks exactly", async () => {
     const content = [
       "1. Run the checks:",
@@ -536,7 +559,7 @@ describe("extractClaims", () => {
     });
   });
 
-  it("rejects invalid and beyond-file line ranges", async () => {
+  it("rejects reversed line ranges and discards beyond-file candidates", async () => {
     const reversed = {
       ...VALID_RAW_CLAIMS[0],
       lineStart: 2,
@@ -565,7 +588,7 @@ describe("extractClaims", () => {
           result({ stdout: JSON.stringify({ claims: [beyondFile] }) }),
         ),
       }),
-    ).rejects.toThrow(`has ${String(INSTRUCTION_CONTENT.split("\n").length)} lines`);
+    ).resolves.toEqual([]);
   });
 
   it.each(["sourceFile", "lineStart", "lineEnd"] as const)(
