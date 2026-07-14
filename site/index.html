@@ -330,6 +330,17 @@
   .cta-final h2{ font-size:32px; font-weight:700; margin:0 0 14px; letter-spacing:-0.01em; }
   .cta-final p{ color: var(--text-dim); font-size:15.5px; margin:0 0 32px; }
   .cta-final .pill{ padding:13px 26px; font-size:14.5px; }
+  .start-intro{ max-width:620px; margin:0 auto 28px !important; }
+  .start-prereq{ max-width:760px; margin:-12px auto 28px; color:var(--text-dim); font-size:13px; line-height:1.55; }
+  .start-prereq a{ color:var(--accent); }
+  .start-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; max-width:940px; margin:0 auto 20px; text-align:left; }
+  .start-step{ background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:22px; }
+  .start-number{ display:inline-flex; width:24px; height:24px; align-items:center; justify-content:center; border-radius:50%; background:rgba(125,145,255,.16); color:var(--accent); font:600 12px var(--mono); margin-bottom:14px; }
+  .start-step h3{ font-size:16px; margin:0 0 8px; }
+  .start-step p{ font-size:13px; line-height:1.55; margin:0 0 14px; }
+  .start-step .mcp-code{ padding:12px; font-size:11.5px; line-height:1.6; box-shadow:none; }
+  .start-step .pill{ padding:9px 13px; font-size:12px; }
+  .start-note{ max-width:760px; margin:0 auto; padding:13px 16px; border:1px solid rgba(242,88,106,.28); border-radius:10px; background:rgba(242,88,106,.06); color:#eeb0b9; font-size:13px; line-height:1.5; }
 
   /* ---------- FOOTER ---------- */
   footer{ padding: 44px 0 60px; border-top:1px solid var(--rule-soft); }
@@ -351,6 +362,7 @@
     .principle-col + .principle-col{ border-left:none; padding-left:0; border-top:1px solid var(--rule-soft); padding-top:20px; }
     .nav-links{ display:none; }
     .bento-grid{ grid-template-columns: 1fr 1fr; }
+    .start-grid{ grid-template-columns:1fr; max-width:560px; }
   }
   @media (max-width:560px){
     h1.headline{ font-size:27px; }
@@ -680,6 +692,7 @@ function Terminal(){
   }, []);
 
   const failCount = SCRIPT.slice(0, visible).filter(l => l.t === 'claim' && l.status === 'fail').length;
+  const passCount = SCRIPT.slice(0, visible).filter(l => l.t === 'claim' && l.status === 'pass').length;
 
   return (
     <div className="term-shell" ref={shellRef}>
@@ -713,7 +726,7 @@ function Terminal(){
         {done && (
           <div className="term-summary">
             <span className="fail-ct">{failCount} failed</span>
-            <span className="pass-ct">0 passed</span>
+            <span className="pass-ct">{passCount} passed</span>
             <span style={{color:'var(--text-faint)'}}>0 warnings</span>
           </div>
         )}
@@ -1065,15 +1078,31 @@ function App(){
 
         <section id="install" className="cta-final">
           <Reveal>
-            <h2>Check your AGENTS.md today</h2>
-            <p>One command. Same evidence a human would want to see.</p>
-            <div className="mcp-code" style={{maxWidth:'560px', margin:'0 auto 28px', textAlign:'left'}}>
-<span className="c"># from an Escrow checkout</span>{"\n"}
-<span className="k">$</span> npm install{"\n"}
-<span className="k">$</span> npm run build{"\n"}
-<span className="k">$</span> node dist/index.js check .
+            <div className="panel-eyebrow">start here — about five minutes</div>
+            <h2>Get Escrow running, step by step.</h2>
+            <p className="start-intro">You only need Node.js, a signed-in Codex app, and this repository. Then use the website—no need to memorize the checker command.</p>
+            <div className="start-prereq"><strong>Before step 1:</strong> install <a href="https://nodejs.org/en/download">Node.js 20+</a>, install the <a href="https://chatgpt.com/download">ChatGPT desktop app</a>, and sign in to Codex once.</div>
+            <div className="start-grid">
+              <div className="start-step">
+                <div className="start-number">1</div>
+                <h3>Download Escrow</h3>
+                <p>Click this, unzip the download, then open Terminal in the unzipped folder.</p>
+                <Magnetic className="pill pill-solid" href="https://github.com/PlutonicSauce/escrow/archive/refs/heads/main.zip">Download ZIP</Magnetic>
+              </div>
+              <div className="start-step">
+                <div className="start-number">2</div>
+                <h3>Paste these commands</h3>
+                <p>These download Escrow’s packages, build it, and start the local website.</p>
+                <div className="mcp-code"><span className="k">$</span> npm ci{"\n"}<span className="k">$</span> npm run build{"\n"}<span className="k">$</span> npm run site</div>
+              </div>
+              <div className="start-step">
+                <div className="start-number">3</div>
+                <h3>Click Run live check</h3>
+                <p>Open the address Terminal prints—usually this one—then click the button in the checker panel.</p>
+                <Magnetic className="pill" href="http://localhost:4173">Open local site</Magnetic>
+              </div>
             </div>
-            <Magnetic className="pill pill-solid" href="https://github.com/PlutonicSauce/escrow">View on GitHub</Magnetic>
+            <div className="start-note"><strong>Do not double-click</strong> <code>site/index.html</code>. A <code>file:///</code> preview cannot run the live checker. Use <code>http://localhost:4173</code> after <code>npm run site</code>.</div>
           </Reveal>
         </section>
 
