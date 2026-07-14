@@ -34,6 +34,8 @@ describe("initializeRepository", () => {
     ]);
     expect(ESCROW_WORKFLOW_TEMPLATE).toContain("PlutonicSauce/escrow-action@v1");
     expect(ESCROW_WORKFLOW_TEMPLATE).toContain("model: gpt-5.6-luna");
+    expect(ESCROW_WORKFLOW_TEMPLATE).toContain("Publish pull-request summary");
+    expect(ESCROW_WORKFLOW_TEMPLATE).toContain("Enforce Escrow result");
   });
 
   it("protects an existing workflow unless force is explicit", async () => {

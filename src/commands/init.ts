@@ -23,6 +23,7 @@ export const ESCROW_WORKFLOW_TEMPLATE = `name: Escrow instruction integrity
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -30,6 +31,7 @@ permissions:
 
 jobs:
   escrow:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -49,6 +51,36 @@ jobs:
         with:
           name: escrow-report
           path: .escrow-artifacts/
+
+      - name: Publish pull-request summary
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          SUMMARY_PATH: \${{ steps.escrow.outputs.summary-report }}
+        with:
+          github-token: \${{ github.token }}
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- escrow-ci-summary -->';
+            const fallback = marker + '\\n## Escrow — instruction integrity\\n\\nEscrow did not complete. See the workflow logs.';
+            const body = fs.existsSync(process.env.SUMMARY_PATH)
+              ? fs.readFileSync(process.env.SUMMARY_PATH, 'utf8')
+              : fallback;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find((comment) => comment.user.type === 'Bot' && comment.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Enforce Escrow result
+        if: always()
+        run: test "\${{ steps.escrow.outputs.status }}" = "0"
 `;
 
 async function pathExists(path: string): Promise<boolean> {
