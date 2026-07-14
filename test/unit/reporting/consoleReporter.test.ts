@@ -45,7 +45,7 @@ describe("renderConsoleReport", () => {
 
     const output = renderConsoleReport(report);
 
-    expect(output).toContain("AgentContract: FAIL");
+    expect(output).toContain("Escrow: FAIL");
     expect(output).toContain("1 failed");
     expect(output).toContain("1 advisory");
     expect(output).toContain("Evidence: File is missing");
@@ -113,7 +113,7 @@ describe("renderConsoleReport", () => {
     expect(output).toContain(
       "[CONFLICT] package manager in /repo/packages/api",
     );
-    expect(output).toContain("AgentContract: FAIL");
+    expect(output).toContain("Escrow: FAIL");
     expect(output).toContain("Source: AGENTS.md:2 (npm)");
     expect(output).toContain("Source: packages/api/AGENTS.md:5-7 (pnpm)");
   });
@@ -153,16 +153,16 @@ describe("renderConsoleReport", () => {
       ]),
     );
 
-    expect(output).toContain("AgentContract: PASS");
+    expect(output).toContain("Escrow: PASS");
     expect(output).toContain("[ADVISORY]");
     expect(output).toContain("1 advisory");
     expect(output).not.toContain("[FAIL]");
   });
 
   it.each([
-    [[], "AgentContract: PASS"],
-    [[createValidatedClaim({ status: "warning" })], "AgentContract: PASS WITH WARNINGS"],
-    [[createValidatedClaim({ status: "failed" })], "AgentContract: FAIL"],
+    [[], "Escrow: PASS"],
+    [[createValidatedClaim({ status: "warning" })], "Escrow: PASS WITH WARNINGS"],
+    [[createValidatedClaim({ status: "failed" })], "Escrow: FAIL"],
   ] as const)("renders the shared overall status for %#", (claims, expectedLabel) => {
     expect(renderConsoleReport(createReport([...claims]))).toContain(expectedLabel);
   });

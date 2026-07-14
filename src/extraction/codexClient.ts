@@ -1,4 +1,22 @@
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+
+const MACOS_CODEX_APP_BINARY = "/Applications/Codex.app/Contents/Resources/codex";
+
+/**
+ * Use an explicit override first, then the bundled macOS app binary when the
+ * Codex app is installed but its CLI directory has not been added to PATH.
+ */
+export function resolveCodexExecutable(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): string {
+  const configured = environment.ESCROW_CODEX_PATH?.trim();
+  if (configured !== undefined && configured.length > 0) return configured;
+  if (process.platform === "darwin" && existsSync(MACOS_CODEX_APP_BINARY)) {
+    return MACOS_CODEX_APP_BINARY;
+  }
+  return "codex";
+}
 
 export interface CodexProcessRequest {
   args: readonly string[];
@@ -24,7 +42,7 @@ export const runCodexProcess: CodexProcessRunner = async (
   request,
 ): Promise<CodexProcessResult> =>
   new Promise((resolve, reject) => {
-    const child = spawn("codex", [...request.args], {
+    const child = spawn(resolveCodexExecutable(), [...request.args], {
       cwd: request.cwd,
       shell: false,
       stdio: ["pipe", "pipe", "pipe"],

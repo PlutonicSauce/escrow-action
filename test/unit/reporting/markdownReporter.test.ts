@@ -7,7 +7,7 @@ describe("renderMarkdownReport", () => {
   it("renders a submission-ready report with all shared report sections", () => {
     const output = renderMarkdownReport(createRichReport());
 
-    expect(output).toContain("# AgentContract Report");
+    expect(output).toContain("# Escrow Report");
     expect(output).toContain("**Overall status: FAIL**");
     expect(output).toContain("## Instruction chain");
     expect(output).toContain("packages/api/AGENTS.override.md");

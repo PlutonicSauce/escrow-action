@@ -43,7 +43,7 @@ describe("generateRepair", () => {
 
     const result = await generateRepair(options(runner));
 
-    expect(result).toEqual({ patch, model: "gpt-5.6" });
+    expect(result).toEqual({ patch, model: "gpt-5.6-terra" });
     const request = runner.mock.calls[0]?.[0];
     expect(request?.cwd).not.toBe("/tmp/repair-worktree");
     expect(request?.cwd).toContain("agentcontract-repair-");

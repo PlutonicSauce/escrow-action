@@ -17,7 +17,7 @@ import {
   type ExitCode as ExitCodeValue,
 } from "./utils/errors.js";
 
-const PROGRAM_NAME = "agentcontract";
+const PROGRAM_NAME = "escrow";
 const PROGRAM_DESCRIPTION =
   "Verify that coding-agent repository instructions match the repository.";
 
@@ -122,7 +122,7 @@ export async function runCli(
       return error.exitCode;
     }
 
-    dependencies.writeError(`Internal AgentContract error: ${getErrorMessage(error)}\n`);
+    dependencies.writeError(`Internal Escrow error: ${getErrorMessage(error)}\n`);
     return ExitCode.internalError;
   }
 }

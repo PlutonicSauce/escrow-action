@@ -43,7 +43,7 @@ export class RepairRejectedError extends AgentContractError {
 }
 
 export class CheckFailedError extends AgentContractError {
-  public constructor(message = "One or more AgentContract claims failed.") {
+  public constructor(message = "One or more Escrow claims failed.") {
     super(message, ExitCode.checkFailed);
   }
 }

@@ -136,7 +136,7 @@ function renderConflict(conflict: InstructionConflict): string[] {
 
 export function renderMarkdownReport(report: AgentContractReport): string {
   const lines = [
-    "# AgentContract Report",
+    "# Escrow Report",
     "",
     `**Overall status: ${OVERALL_STATUS_LABELS[report.overallStatus]}**`,
     "",

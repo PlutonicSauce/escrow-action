@@ -30,6 +30,7 @@ function createFakeChild(): FakeChildProcess {
 describe("runCodexProcess", () => {
   beforeEach(() => {
     spawnMock.mockReset();
+    process.env.ESCROW_CODEX_PATH = "codex";
   });
 
   it("passes instruction text literally over stdin without invoking a shell", async () => {

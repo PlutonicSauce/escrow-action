@@ -1,11 +1,9 @@
 
-# ProofCatcher
-
-# AgentContract
+# Escrow
 
 > Executable tests for the instructions coding agents rely on.
 
-AgentContract verifies whether `AGENTS.md` and `AGENTS.override.md` still match
+Escrow verifies whether `AGENTS.md` and `AGENTS.override.md` still match
 the repository they describe. It uses Codex to extract structured candidate
 claims, then assigns every status through deterministic TypeScript validators.
 It can optionally execute documented commands in isolated Git worktrees,
@@ -31,11 +29,11 @@ directory, and valid nested overrides do not become false conflicts.
 
 - Node.js 20 or newer
 - Git
-- npm for installing and building AgentContract
+- npm for installing and building Escrow
 - macOS or Linux
 - Codex CLI installed, authenticated, and available as `codex`
 
-AgentContract invokes Codex non-interactively with `codex exec`. Verify the
+Escrow invokes Codex non-interactively with `codex exec`. Verify the
 prerequisite with:
 
 ```bash
@@ -61,7 +59,7 @@ Optionally expose the local binary through npm:
 
 ```bash
 npm link
-agentcontract --help
+escrow --help
 ```
 
 No OpenAI SDK or application API key is read directly by AgentContract. Codex
@@ -71,16 +69,16 @@ login, subject to the account and workspace configuration.
 ## Check a repository
 
 ```bash
-agentcontract check .
-agentcontract check . --target packages/api
-agentcontract check . --execute --timeout 120
-agentcontract check . --json report.json
-agentcontract check . --markdown report.md
-agentcontract check . --html report.html
+escrow check .
+escrow check . --target packages/api
+escrow check . --execute --timeout 120
+escrow check . --json report.json
+escrow check . --markdown report.md
+escrow check . --html report.html
 ```
 
-If npm linking was skipped, replace `agentcontract` with
-`node /path/to/agentcontract/dist/index.js`.
+If npm linking was skipped, replace `escrow` with
+`node /path/to/escrow/dist/index.js`.
 
 Report formats all consume the same `AgentContractReport` object:
 
@@ -97,8 +95,8 @@ inconclusive claims do not return `1` in the MVP.
 ## Restricted repair mode
 
 ```bash
-agentcontract fix .            # verified preview; active checkout unchanged
-agentcontract fix . --apply    # apply only the verified instruction patch
+escrow fix .            # verified preview; active checkout unchanged
+escrow fix . --apply    # apply only the verified instruction patch
 ```
 
 Repair mode requires a clean active repository. Codex proposes a
@@ -117,9 +115,10 @@ Codex is used only at two natural-language boundaries:
 2. Repair proposal: GPT-5.6 proposes the smallest documentation-only unified
    diff from failed claims and deterministic evidence.
 
-Override the model with `--model <model>` or `AGENTCONTRACT_CODEX_MODEL`.
+Override the model with `--model <model>` or `ESCROW_CODEX_MODEL`
+(`AGENTCONTRACT_CODEX_MODEL` remains supported for compatibility).
 Model availability depends on the authenticated account. The demo script uses
-`gpt-5.6-sol` by default and accepts `AGENTCONTRACT_DEMO_MODEL` when another
+`gpt-5.6-terra` by default and accepts `ESCROW_DEMO_MODEL` when another
 available GPT-5.6 variant is required.
 Codex never assigns pass/fail/warning/blocked/inconclusive/overridden verdicts,
 never determines instruction applicability, and never applies a repair.
@@ -142,6 +141,12 @@ never determines instruction applicability, and never applies a repair.
 
 See [architecture.md](docs/architecture.md) for trust boundaries and lifecycle
 details.
+
+## Landing page
+
+The static judge-facing site lives in [`site/`](site). Run `npm run site`, then
+open <http://localhost:4173>. Its terminal, report, and documentation links are
+backed by the included demo assets.
 
 ## Demo
 

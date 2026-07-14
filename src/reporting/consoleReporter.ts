@@ -8,7 +8,7 @@ import {
 
 export function renderConsoleReport(report: AgentContractReport): string {
   const lines = [
-    `AgentContract: ${OVERALL_STATUS_LABELS[report.overallStatus]}`,
+    `Escrow: ${OVERALL_STATUS_LABELS[report.overallStatus]}`,
     `Repository: ${report.repositoryRoot}`,
     `Target: ${report.targetDirectory}`,
     `Summary: ${report.summary.passed} passed, ${report.summary.failed} failed, ${report.summary.warnings} warnings, ${report.summary.blocked} blocked, ${report.summary.inconclusive} inconclusive, ${report.summary.advisory} advisory, ${report.summary.overridden} overridden`,

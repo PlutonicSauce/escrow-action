@@ -1,4 +1,4 @@
-AgentContract: FAIL
+Escrow: FAIL
 Repository: /demo/sample-monorepo
 Target: /demo/sample-monorepo
 Summary: 1 passed, 4 failed, 0 warnings, 0 blocked, 0 inconclusive, 0 advisory, 0 overridden

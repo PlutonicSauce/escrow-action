@@ -113,7 +113,7 @@ function mockRunner(
 describe("resolveCodexModel", () => {
   it("uses GPT-5.6 by default", () => {
     expect(resolveCodexModel(undefined, {})).toBe(DEFAULT_CODEX_MODEL);
-    expect(DEFAULT_CODEX_MODEL).toBe("gpt-5.6");
+    expect(DEFAULT_CODEX_MODEL).toBe("gpt-5.6-terra");
   });
 
   it("uses AGENTCONTRACT_CODEX_MODEL when no CLI model is supplied", () => {
@@ -136,7 +136,7 @@ describe("resolveCodexModel", () => {
     expect(() => resolveCodexModel("   ", {})).toThrow(CodexExtractionError);
     expect(() =>
       resolveCodexModel(undefined, { AGENTCONTRACT_CODEX_MODEL: "" }),
-    ).toThrow("AGENTCONTRACT_CODEX_MODEL cannot be empty");
+    ).toThrow("ESCROW_CODEX_MODEL cannot be empty");
   });
 });
 
@@ -177,7 +177,7 @@ describe("extractClaims", () => {
       "apps",
       "exec",
       "--model",
-      "gpt-5.6",
+      "gpt-5.6-terra",
       "--sandbox",
       "read-only",
       "--ephemeral",
