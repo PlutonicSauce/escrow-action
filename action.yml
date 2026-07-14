@@ -79,6 +79,7 @@ runs:
         esac
         report_directory="$GITHUB_WORKSPACE/$INPUT_REPORT_DIRECTORY"
         mkdir -p "$report_directory"
+        mkdir -p "$RUNNER_TEMP/escrow-codex-home"
         command=(
           node "$GITHUB_ACTION_PATH/dist/index.js" check "$GITHUB_WORKSPACE"
           --model "$INPUT_MODEL"
