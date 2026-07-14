@@ -16,6 +16,11 @@ import {
   type UiCommandOptions,
 } from "./commands/ui.js";
 import {
+  initializeRepository,
+  type InitCommandHandler,
+  type InitCommandOptions,
+} from "./commands/init.js";
+import {
   AgentContractError,
   ExitCode,
   getErrorMessage,
@@ -55,6 +60,7 @@ export interface CliDependencies {
   check: CheckCommandHandler;
   fix: FixCommandHandler;
   ui: UiCommandHandler;
+  init: InitCommandHandler;
   writeOut: (message: string) => void;
   writeError: (message: string) => void;
 }
@@ -63,6 +69,7 @@ const defaultDependencies: CliDependencies = {
   check: checkRepository,
   fix: fixRepository,
   ui: uiRepository,
+  init: initializeRepository,
   writeOut: (message: string): void => {
     process.stdout.write(message);
   },
@@ -129,6 +136,15 @@ export function createProgram(dependencies: CliDependencies = defaultDependencie
     .option("--timeout <seconds>", "documented-command timeout", parseTimeoutSeconds)
     .action(async (repository: string, options: UiCommandOptions): Promise<void> => {
       await dependencies.ui(repository, options);
+    });
+
+  program
+    .command("init")
+    .description("Create an Escrow GitHub Actions workflow")
+    .argument("[repository]", "path to the repository", ".")
+    .option("--force", "replace an existing Escrow workflow")
+    .action(async (repository: string, options: InitCommandOptions): Promise<void> => {
+      await dependencies.init(repository, options);
     });
 
   return program;

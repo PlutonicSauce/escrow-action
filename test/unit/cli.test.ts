@@ -4,6 +4,7 @@ import { runCli, type CliDependencies } from "../../src/cli.js";
 import type { CheckCommandHandler } from "../../src/commands/check.js";
 import type { FixCommandHandler } from "../../src/commands/fix.js";
 import type { UiCommandHandler } from "../../src/commands/ui.js";
+import type { InitCommandHandler } from "../../src/commands/init.js";
 import {
   CheckFailedError,
   CodexExtractionError,
@@ -15,6 +16,7 @@ interface CliHarness {
   check: ReturnType<typeof vi.fn<CheckCommandHandler>>;
   fix: ReturnType<typeof vi.fn<FixCommandHandler>>;
   ui: ReturnType<typeof vi.fn<UiCommandHandler>>;
+  init: ReturnType<typeof vi.fn<InitCommandHandler>>;
   dependencies: CliDependencies;
   stdout: string[];
   stderr: string[];
@@ -26,15 +28,18 @@ function createHarness(): CliHarness {
   const check = vi.fn<CheckCommandHandler>();
   const fix = vi.fn<FixCommandHandler>();
   const ui = vi.fn<UiCommandHandler>();
+  const init = vi.fn<InitCommandHandler>();
 
   return {
     check,
     fix,
     ui,
+    init,
     dependencies: {
       check,
       fix,
       ui,
+      init,
       writeOut: (message: string): void => {
         stdout.push(message);
       },
@@ -213,6 +218,15 @@ describe("runCli", () => {
     expect(harness.ui).toHaveBeenCalledWith(".", { open: true });
   });
 
+  it("creates a GitHub Actions workflow with init", async () => {
+    const harness = createHarness();
+
+    const exitCode = await runCli(["init", "./example-repository", "--force"], harness.dependencies);
+
+    expect(exitCode).toBe(ExitCode.success);
+    expect(harness.init).toHaveBeenCalledWith("./example-repository", { force: true });
+  });
+
   it("rejects invalid local UI ports", async () => {
     const harness = createHarness();
 
@@ -310,5 +324,6 @@ describe("runCli", () => {
     expect(harness.stdout.join("")).toContain("check");
     expect(harness.stdout.join("")).toContain("fix");
     expect(harness.stdout.join("")).toContain("ui");
+    expect(harness.stdout.join("")).toContain("init");
   });
 });

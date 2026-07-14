@@ -1,0 +1,102 @@
+name: Escrow
+description: Verify coding-agent instructions against deterministic repository evidence.
+author: PlutonicSauce
+
+inputs:
+  openai-api-key:
+    description: OpenAI API key used only by the nested Codex claim-extraction process.
+    required: true
+  model:
+    description: Codex model used to interpret repository instructions.
+    required: false
+    default: gpt-5.6-luna
+  execute:
+    description: Run documented commands in temporary Git worktrees.
+    required: false
+    default: "true"
+  allow-network:
+    description: Allow documented commands that need network access.
+    required: false
+    default: "false"
+  report-directory:
+    description: Relative directory in the checked-out repository for generated reports.
+    required: false
+    default: .escrow-artifacts
+  codex-version:
+    description: Version of @openai/codex to install (latest is the default).
+    required: false
+    default: latest
+
+outputs:
+  status:
+    description: Escrow CLI exit code (0 passes, 1 stale instructions, 2-4 operational errors).
+    value: ${{ steps.escrow.outputs.status }}
+  json-report:
+    description: Repository-relative JSON report path.
+    value: ${{ steps.escrow.outputs.json-report }}
+  markdown-report:
+    description: Repository-relative Markdown report path.
+    value: ${{ steps.escrow.outputs.markdown-report }}
+  html-report:
+    description: Repository-relative HTML report path.
+    value: ${{ steps.escrow.outputs.html-report }}
+  summary-report:
+    description: Repository-relative concise CI summary path.
+    value: ${{ steps.escrow.outputs.summary-report }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: 20
+
+    - name: Build Escrow and install Codex CLI
+      shell: bash
+      run: |
+        set -euo pipefail
+        npm ci --ignore-scripts --prefix "$GITHUB_ACTION_PATH"
+        npm run build --prefix "$GITHUB_ACTION_PATH"
+        npm install --ignore-scripts --no-save --prefix "$RUNNER_TEMP/escrow-codex-cli" "@openai/codex@${{ inputs.codex-version }}"
+
+    - name: Check repository instructions
+      id: escrow
+      shell: bash
+      env:
+        INPUT_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        INPUT_MODEL: ${{ inputs.model }}
+        INPUT_EXECUTE: ${{ inputs.execute }}
+        INPUT_ALLOW_NETWORK: ${{ inputs.allow-network }}
+        INPUT_REPORT_DIRECTORY: ${{ inputs.report-directory }}
+      run: |
+        set -euo pipefail
+        case "$INPUT_REPORT_DIRECTORY" in
+          ""|/*|*".."*)
+            echo "report-directory must be a safe relative path" >&2
+            exit 2
+            ;;
+        esac
+        report_directory="$GITHUB_WORKSPACE/$INPUT_REPORT_DIRECTORY"
+        mkdir -p "$report_directory"
+        command=(
+          node "$GITHUB_ACTION_PATH/dist/index.js" check "$GITHUB_WORKSPACE"
+          --model "$INPUT_MODEL"
+          --json "$report_directory/escrow-report.json"
+          --markdown "$report_directory/escrow-report.md"
+          --html "$report_directory/escrow-report.html"
+        )
+        if [ "$INPUT_EXECUTE" = "true" ]; then command+=(--execute); fi
+        if [ "$INPUT_ALLOW_NETWORK" = "true" ]; then command+=(--allow-network); fi
+        set +e
+        PATH="$RUNNER_TEMP/escrow-codex-cli/node_modules/.bin:$PATH" CODEX_HOME="$RUNNER_TEMP/escrow-codex-home" CODEX_API_KEY="$INPUT_OPENAI_API_KEY" "${command[@]}"
+        escrow_status=$?
+        set -e
+        node "$GITHUB_ACTION_PATH/scripts/render-ci-summary.mjs" "$report_directory/escrow-report.json" "$report_directory/escrow-summary.md" "$escrow_status"
+        {
+          echo "status=$escrow_status"
+          echo "json-report=$INPUT_REPORT_DIRECTORY/escrow-report.json"
+          echo "markdown-report=$INPUT_REPORT_DIRECTORY/escrow-report.md"
+          echo "html-report=$INPUT_REPORT_DIRECTORY/escrow-report.html"
+          echo "summary-report=$INPUT_REPORT_DIRECTORY/escrow-summary.md"
+        } >> "$GITHUB_OUTPUT"
