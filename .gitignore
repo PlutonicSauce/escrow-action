@@ -1,8 +1,5 @@
 dist/
 node_modules/
 *.tsbuildinfo
-<<<<<<< HEAD
 .DS_Store
-=======
 .escrow-demo/
->>>>>>> 0453a20 (Add interactive local Escrow interface)

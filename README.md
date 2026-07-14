@@ -84,7 +84,7 @@ npm run build
 npm link
 npm run demo:reset
 escrow ui .escrow-demo/sample-monorepo \
-  --model "${ESCROW_DEMO_MODEL:-gpt-5.6-luna}" --execute
+  --model "${ESCROW_DEMO_MODEL:-gpt-5.6-terra}" --execute
 ```
 
 Expected output:
@@ -127,7 +127,7 @@ printed URL yourself.
 escrow ui .
 escrow ui . --target packages/api
 escrow ui . --port 4173 --no-open
-escrow ui . --model gpt-5.6-luna
+escrow ui . --model gpt-5.6-terra
 escrow ui . --execute --timeout 120
 escrow ui . --execute --allow-network
 ```
@@ -154,7 +154,7 @@ Reset the disposable demo and start the UI:
 
 ```bash
 npm run demo:reset
-escrow ui .escrow-demo/sample-monorepo --model gpt-5.6-luna --execute
+escrow ui .escrow-demo/sample-monorepo --model gpt-5.6-terra --execute
 ```
 
 Open the printed `http://127.0.0.1:<port>` URL. Click **Scan instructions** and
@@ -214,16 +214,10 @@ Codex is used only at two natural-language boundaries:
 2. Repair proposal: GPT-5.6 proposes the smallest documentation-only unified
    diff from failed claims and deterministic evidence.
 
-<<<<<<< HEAD
 Override the model with `--model <model>` or `ESCROW_CODEX_MODEL`
 (`AGENTCONTRACT_CODEX_MODEL` remains supported for compatibility).
 Model availability depends on the authenticated account. The demo script uses
 `gpt-5.6-terra` by default and accepts `ESCROW_DEMO_MODEL` when another
-=======
-Override the model with `--model <model>` or `ESCROW_CODEX_MODEL`.
-Model availability depends on the authenticated account. The demo script uses
-`gpt-5.6-luna` by default and accepts `ESCROW_DEMO_MODEL` when another
->>>>>>> 0453a20 (Add interactive local Escrow interface)
 available GPT-5.6 variant is required.
 Codex never assigns pass/fail/warning/blocked/inconclusive/overridden verdicts,
 never determines instruction applicability, and never applies a repair.
@@ -247,11 +241,11 @@ never determines instruction applicability, and never applies a repair.
 See [architecture.md](docs/architecture.md) for trust boundaries and lifecycle
 details.
 
-## Landing page
+## Local interface
 
-The static judge-facing site lives in [`site/`](site). Run `npm run site`, then
-open <http://localhost:4173>. Its terminal, report, and documentation links are
-backed by the included demo assets.
+Run `escrow ui .` after building and linking the project. It opens Escrow's
+local browser interface and keeps repository access, Codex authentication, and
+repair operations on your machine.
 
 ## Demo
 

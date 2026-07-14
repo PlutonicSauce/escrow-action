@@ -32,7 +32,7 @@ process.stdout.write(
   [
     `Reset broken demo repository: ${destination}`,
     "Start the UI with:",
-    "  escrow ui .escrow-demo/sample-monorepo --model gpt-5.6-luna",
+    "  escrow ui .escrow-demo/sample-monorepo --model gpt-5.6-terra",
     "",
   ].join("\n"),
 );

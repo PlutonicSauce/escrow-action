@@ -14,58 +14,9 @@ npm ci
 npm run build
 npm link
 codex login status
-<<<<<<< HEAD
-
-DEMO_HOME="$(mktemp -d)"
-BROKEN_REPO="$DEMO_HOME/broken-monorepo"
-REPAIR_REPO="$DEMO_HOME/repair-monorepo"
-ARTIFACTS="$DEMO_HOME/reports"
-MODEL="${ESCROW_DEMO_MODEL:-gpt-5.6-terra}"
-
-cp -R demo/sample-monorepo "$BROKEN_REPO"
-cp -R demo/sample-monorepo "$REPAIR_REPO"
-mkdir -p "$ARTIFACTS"
-
-for REPO in "$BROKEN_REPO" "$REPAIR_REPO"; do
-  git -C "$REPO" init --quiet
-  git -C "$REPO" config user.name "AgentContract Demo"
-  git -C "$REPO" config user.email "demo@example.invalid"
-  git -C "$REPO" add .
-  git -C "$REPO" commit --quiet -m "demo baseline"
-done
-
-set +e
-node dist/index.js check "$BROKEN_REPO" --execute --model "$MODEL" \
-  --json "$ARTIFACTS/broken-report.json" \
-  --markdown "$ARTIFACTS/broken-report.md" \
-  --html "$ARTIFACTS/broken-report.html" \
-  >"$ARTIFACTS/broken-console.txt" 2>&1
-BROKEN_EXIT=$?
-
-node dist/index.js check "$BROKEN_REPO" --target packages/api \
-  --model "$MODEL" >"$ARTIFACTS/nested-console.txt" 2>&1
-NESTED_EXIT=$?
-set -e
-
-test "$BROKEN_EXIT" -eq 1
-test "$NESTED_EXIT" -eq 1
-
-node dist/index.js fix "$REPAIR_REPO" --apply --model "$MODEL" \
-  >"$ARTIFACTS/repair-apply.txt" 2>&1
-
-node dist/index.js check "$REPAIR_REPO" --execute --model "$MODEL" \
-  --html "$ARTIFACTS/repaired-report.html" \
-  >"$ARTIFACTS/repaired-console.txt" 2>&1
-
-git -C "$BROKEN_REPO" status --short
-git -C "$REPAIR_REPO" diff --name-only
-printf 'BROKEN_REPO=%s\nREPAIR_REPO=%s\nARTIFACTS=%s\nMODEL=%s\n' \
-  "$BROKEN_REPO" "$REPAIR_REPO" "$ARTIFACTS" "$MODEL"
-=======
 npm run demo:reset
 escrow ui .escrow-demo/sample-monorepo \
-  --model "${ESCROW_DEMO_MODEL:-gpt-5.6-luna}" --execute
->>>>>>> 0453a20 (Add interactive local Escrow interface)
+  --model "${ESCROW_DEMO_MODEL:-gpt-5.6-terra}" --execute
 ```
 
 Open the printed loopback URL. Before starting the clock, keep these ready:

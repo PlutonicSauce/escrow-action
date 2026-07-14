@@ -6,7 +6,7 @@ Git repository instead:
 
 ```bash
 npm run demo:reset
-escrow ui .escrow-demo/sample-monorepo --model gpt-5.6-luna
+escrow ui .escrow-demo/sample-monorepo --model gpt-5.6-terra
 ```
 
 The reset command deletes and recreates only `.escrow-demo/`, which is ignored

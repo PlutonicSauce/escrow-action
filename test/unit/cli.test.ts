@@ -305,11 +305,8 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(ExitCode.success);
     expect(harness.stdout.join("")).toContain("Usage: escrow");
-<<<<<<< HEAD
-=======
     expect(harness.stdout.join("")).toContain("local Escrow browser interface");
     expect(harness.stdout.join("")).not.toMatch(/AgentContract|ProofCatcher/u);
->>>>>>> 0453a20 (Add interactive local Escrow interface)
     expect(harness.stdout.join("")).toContain("check");
     expect(harness.stdout.join("")).toContain("fix");
     expect(harness.stdout.join("")).toContain("ui");

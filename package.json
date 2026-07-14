@@ -14,13 +14,8 @@
     "build": "tsc --project tsconfig.json",
     "test": "vitest run",
     "test:codex-integration": "vitest run --config vitest.manual.config.ts",
-<<<<<<< HEAD
-    "site": "node site/server.mjs",
-    "typecheck": "tsc --project tsconfig.json --noEmit"
-=======
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "demo:reset": "node scripts/reset-demo.mjs"
->>>>>>> 0453a20 (Add interactive local Escrow interface)
   },
   "engines": {
     "node": ">=20"

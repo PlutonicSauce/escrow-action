@@ -155,11 +155,7 @@ describe("resolveCodexModel", () => {
   it("rejects empty model overrides", () => {
     expect(() => resolveCodexModel("   ", {})).toThrow(CodexExtractionError);
     expect(() =>
-<<<<<<< HEAD
-      resolveCodexModel(undefined, { AGENTCONTRACT_CODEX_MODEL: "" }),
-=======
       resolveCodexModel(undefined, { ESCROW_CODEX_MODEL: "" }),
->>>>>>> 0453a20 (Add interactive local Escrow interface)
     ).toThrow("ESCROW_CODEX_MODEL cannot be empty");
   });
 });
