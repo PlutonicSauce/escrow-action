@@ -3418,13 +3418,244 @@ application behavior.
 
 ### Submission risks
 
-- The workspace has an unborn `main` branch: `git rev-parse --verify HEAD`
-  fails, and every project path is currently untracked. A submission made from
-  this exact Git state would omit the entire implementation unless the owner
-  intentionally stages and commits it.
+- At the time of this audit, the workspace initially appeared to have an
+  unborn `main` branch with untracked project files. Repository state was later
+  updated outside AgentContract: clean-machine onboarding verified tracked HEAD
+  `3b7b25323e103dea0dd4e67a5ed73635380d97d1`, aligned local
+  `main...origin/main`, and a successful local clone. Remote host availability
+  was not required or independently tested.
 - The two documented-but-unimplemented flags above are specification
   discrepancies even though they were outside PLAN milestone acceptance.
 - Live demo success depends on Codex authentication/model availability and may
   vary in latency. The deterministic mocked suite remains clean-machine safe.
 - Command isolation protects the active checkout with a temporary worktree but
   is not a universal host sandbox for transitive behavior of allowed scripts.
+
+## Clean-machine onboarding verification — 2026-07-13
+
+**Status:** COMPLETE
+
+### Scope and method
+
+- Followed `README.md` and the linked `docs/demo-script.md` from two separate
+  dependency-free temporary source copies. Each copy started without
+  `node_modules` or `dist`.
+- Used only documented runtime prerequisites for the onboarding flow: Node.js,
+  npm, Git, the shell utilities used by the documented demo setup, and an
+  installed/authenticated Codex CLI. Audit-only inspection commands did not
+  contribute to product success.
+- Used direct `node dist/index.js` execution because README explicitly documents
+  it as the alternative to the optional global `npm link` step. No global npm
+  package or project dependency was installed outside the temporary copies.
+- Verified the current official Codex manual after the first run. It confirms
+  `codex login`, `codex login status`, API-key login through stdin, and
+  non-interactive `codex exec`, so the README prerequisite guidance required no
+  correction.
+
+### Environment
+
+```text
+Node.js: v20.19.5
+npm: 10.8.2
+Git: 2.47.1
+Codex CLI: 0.144.3
+Codex authentication: Logged in using ChatGPT
+Platform: macOS
+Live demo model: gpt-5.6-sol
+```
+
+### Baseline clean-copy run
+
+Temporary source copy:
+`/private/tmp/agentcontract-onboarding-baseline.UOP69c`
+
+```text
+npm ci
+  PASS; 50 packages installed in 1s
+
+npm run build
+  PASS
+
+node dist/index.js --help
+node dist/index.js --version
+  PASS; help rendered; version 0.1.0
+
+npm run typecheck
+  PASS
+
+npm test
+  PASS; 30 files, 402 tests, 402 passed, 4.49s
+
+npm run build
+  PASS
+```
+
+The linked demo preparation commands created clean committed copies of the
+sample and dangerous-command repositories and an existing report directory.
+The subsequent live flow produced:
+
+```text
+node dist/index.js check <sample> --execute --model gpt-5.6-sol \
+  --json <broken-report.json> --markdown <broken-report.md> \
+  --html <broken-report.html>
+  EXPECTED EXIT 1; 1 passed, 4 failed; isolated health command passed;
+  JSON, Markdown, and static HTML files created
+
+node dist/index.js check <sample> --target packages/api \
+  --model gpt-5.6-sol
+  EXPECTED EXIT 1; nested pnpm instruction passed; root npm instruction was
+  overridden only for the nested target; 3 unrelated failures remained
+
+node dist/index.js check <dangerous-fixture> --execute \
+  --model gpt-5.6-sol
+  PASS; exit 0 with pass_with_warnings; git push blocked and never executed
+
+node dist/index.js fix <sample> --model gpt-5.6-sol
+  PASS; exit 0; verified minimal AGENTS.md-only diff; repaired worktree had
+  2 passed, 0 failed, and 1 unexecuted command; preview left active checkout
+  clean
+```
+
+After preview, both fixture repositories had clean `git status`, each
+`git worktree list` contained only its active checkout, and no unexpected
+`agentcontract-worktree-*`, `agentcontract-repair-*`, or
+`agentcontract-extraction-*` directory remained.
+
+### Repeated final clean-copy run
+
+Temporary source copy:
+`/private/tmp/agentcontract-onboarding-final.jK81eA`
+
+The second copy again began without `node_modules` or `dist` and repeated the
+required judge/developer flow:
+
+```text
+npm ci
+  PASS; 50 packages installed in 858ms
+
+npm run build
+  PASS
+
+npm run typecheck
+  PASS
+
+npm test
+  PASS; 30 files, 402 tests, 402 passed, 4.39s
+
+node dist/index.js --help
+node dist/index.js --version
+  PASS; help rendered; version 0.1.0
+
+node dist/index.js check <sample> --execute --model gpt-5.6-sol \
+  --json <onboarding.json> --markdown <onboarding.md> \
+  --html <onboarding.html>
+  EXPECTED EXIT 1; 1 passed, 4 failed; safe command passed in an isolated
+  worktree; all three report files were valid and non-empty
+
+node dist/index.js fix <sample> --model gpt-5.6-sol
+  PASS; exit 0; same minimal verified instruction diff; after report had
+  2 passed, 0 failed, 1 inconclusive; active fixture remained clean
+
+JSON.parse(<onboarding.json>)
+  PASS; overallStatus fail; exact totals 1 passed / 4 failed
+
+git status --short
+git worktree list --porcelain
+find /private/tmp -maxdepth 2 <AgentContract temporary-directory patterns>
+  PASS; active fixture unchanged; only its active worktree remained; no
+  unexpected AgentContract process or worktree directory remained
+```
+
+### Undocumented assumptions and missing steps
+
+- No onboarding command or prerequisite was missing from README. Installation,
+  building, tests, direct execution, optional linking, authentication, fixture
+  commits, report-directory creation, expected failing exit code, repair
+  cleanliness, model override, and limitations are all documented.
+- The first two passes used complete dependency-free source copies because the
+  preceding audit had recorded an unborn/untracked workspace. A final state
+  check found that tracked repository history was now present, so a third pass
+  used a true local clone. No AgentContract command committed, pushed, or
+  otherwise changed repository history.
+- `npm link` is explicitly optional. The audit selected the documented direct
+  `node dist/index.js` route, avoiding an unnecessary global mutation.
+- Live claim extraction and repair require Codex network/service access and an
+  available selected model. The demo's `gpt-5.6-sol` override is documented;
+  model latency and entitlement remain external assumptions.
+- The intentionally broken sample returns exit 1. Shell automation must allow
+  that expected result before continuing; the demo text states the expected
+  exit code immediately after the command.
+- Report parent directories must exist. README lists this limitation, and the
+  demo preparation creates the directory before report generation.
+- The managed audit harness required permission for Codex's own state/network
+  access. That approval is environment-specific and is not an AgentContract
+  installation step.
+
+### Files changed
+
+- `IMPLEMENTATION.md`
+
+No README, package, dependency, source, test, or product change was necessary.
+
+Final project verification after this log update:
+
+```text
+npm run build && npm run typecheck && npm test
+  PASS; build and strict type check succeeded; 30 files, 402 tests,
+  402 passed, 4.60s
+
+rm -rf <the four exact onboarding temporary directories>
+test ! -e <each onboarding temporary directory>
+find /private/tmp -maxdepth 2 <AgentContract temporary-directory patterns>
+  PASS; both source copies and both demo directories were removed; no
+  unexpected AgentContract temporary worktree or process directory remained
+```
+
+### True clean-clone confirmation
+
+After repository history became available, the flow was repeated from an
+actual clone rather than a source copy:
+
+```text
+git clone --no-local /Users/udaykandi/Desktop/Projects/ProofCatcher \
+  /private/tmp/agentcontract-onboarding-clone.h3yW9E/ProofCatcher
+  PASS; cloned HEAD 3b7b25323e103dea0dd4e67a5ed73635380d97d1;
+  clean status; no node_modules or dist
+
+npm ci
+  PASS; 50 packages installed in 854ms
+
+npm run build
+npm run typecheck
+npm test
+  PASS; build and strict type check succeeded; 30 files, 402 tests,
+  402 passed, 4.42s
+
+node dist/index.js --help
+node dist/index.js --version
+  PASS; help rendered; version 0.1.0
+
+node dist/index.js check <cloned-demo> --execute --model gpt-5.6-sol \
+  --json <judge.json> --markdown <judge.md> --html <judge.html>
+  EXPECTED EXIT 1; 1 passed, 4 failed; safe health command passed in an
+  isolated worktree; JSON, Markdown, and HTML reports created
+
+node dist/index.js fix <cloned-demo> --model gpt-5.6-sol
+  PASS; exit 0; verified minimal AGENTS.md-only preview; after report had
+  2 passed, 0 failed, 1 inconclusive; active fixture remained clean
+
+git status --short
+git worktree list --porcelain
+find /private/tmp -maxdepth 2 <AgentContract temporary-directory patterns>
+  PASS; cloned project and demo fixture were clean; only the fixture's active
+  worktree remained; no unexpected AgentContract temporary directory remained
+
+rm -rf <exact clean-clone and cloned-demo temporary directories>
+test ! -e <each clean-clone temporary directory>
+  PASS; clone and demo directories removed
+
+npm run build && npm run typecheck && npm test
+  FINAL PASS in the project workspace; build and strict type check succeeded;
+  30 files, 402 tests, 402 passed, 4.50s; only IMPLEMENTATION.md is modified;
+  the project has one registered worktree
+```
