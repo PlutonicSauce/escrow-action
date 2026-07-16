@@ -1,13 +1,12 @@
-# Three-minute Escrow UI demo
+# Canonical OpenAI Build Week demo script
 
-This script demonstrates the final local UI in about 2:45, under three minutes.
-It uses a
-disposable Git repository under `.escrow-demo/`; the tracked Escrow checkout
-and tracked source fixture remain unchanged.
+This is the canonical Escrow judge story. The spoken track targets about 2:45
+and is safely below three minutes. Keep setup and model authentication outside
+the recording clock.
 
-## Prepare
+## Prepare before recording
 
-Run from the Escrow project root:
+Run from the Escrow repository root:
 
 ```bash
 npm ci
@@ -16,131 +15,157 @@ npm link
 codex login status
 npm run demo:reset
 escrow ui .escrow-demo/sample-monorepo \
-  --model "${ESCROW_DEMO_MODEL:-gpt-5.6-terra}" --execute
-
   --model "${ESCROW_DEMO_MODEL:-gpt-5.6-luna}" --execute
 ```
 
-Open the printed loopback URL. Before starting the clock, keep these ready:
+Open the printed loopback URL. Keep these tabs or files ready:
 
 - `demo/sample-monorepo/AGENTS.md`
 - `demo/sample-monorepo/packages/api/AGENTS.override.md`
-- the Escrow browser tab
-- `demo/sample-reports/broken-report.html` as the offline fallback
+- the Escrow browser interface
+- `README.md` at **Judge Quick Test**
+- `action.yml`
+- `demo/sample-reports/broken-report.html` as an explicitly labeled offline
+  fallback
+- `docs/case-study.md` for the exact fixture evidence
 
-## Presentation
+## Spoken demo — target 2:45
 
-### 0:00–0:20 — Stale instructions
+### 0:00–0:15 — Problem and audience
 
-Open `demo/sample-monorepo/AGENTS.md`.
+**Show:** `demo/sample-monorepo/AGENTS.md`.
 
-Narration:
+**Say:**
 
-> Coding agents trust repository instructions, but those instructions drift.
-> This file says npm, references a deleted document, calls a missing test
-> script, and claims Jest is installed. The repository actually uses pnpm,
-> exposes `test:unit`, and declares Vitest.
+> Coding agents trust repository instructions, but those instructions drift
+> outside normal tests. Escrow is a developer tool that checks whether
+> `AGENTS.md` still matches the repository before an agent relies on it.
 
-### 0:20–0:55 — Scan and deterministic evidence
+### 0:15–0:55 — Stale claims and scan
 
-In the UI, click **Scan instructions**.
+**Show:** Point to lines 3–7, switch to the browser, and click **Scan
+instructions**.
 
-Narration:
+**Say:**
 
-> Escrow discovers the effective instruction chain, then Codex extracts typed
-> claims with exact source lines. Deterministic TypeScript—not the model—finds
-> four failures: package manager, path, package script, and framework. The safe
-> health command passes in a temporary Git worktree.
+> This prepared monorepo says npm even though it uses pnpm, requires a deleted
+> setup document, calls a missing `test` script, and says Jest is installed
+> while the package declares Vitest. It also documents one real health-check
+> command. Codex with GPT-5.6 extracts typed candidate claims and exact source
+> locations. Escrow then reports four stale claims, while the health command
+> passes only because execution was explicitly enabled and it ran in a
+> temporary Git worktree—not this checkout.
 
-Point out:
+### 0:55–1:25 — Deterministic evidence and nested scope
 
-- `These instructions do not match the repository.`
-- exactly four failed claims and one passed command
-- repository-relative locations such as `AGENTS.md:3`
-- the issue-first result view; Advisory and Show all remain available
+**Show:** Expand the four failed cards, then open
+`packages/api/AGENTS.override.md`.
 
-### 0:55–1:15 — Valid nested override
+**Say:**
 
-Open `demo/sample-monorepo/packages/api/AGENTS.override.md`.
+> The model does not choose these verdicts. TypeScript validators compare npm
+> with the pnpm lockfile and package metadata, resolve the missing path inside
+> the Git root, inspect the nearest package scripts, and verify that Jest is
+> absent. Source text is reconstructed from the exact repository lines, not
+> copied from AI. This nested pnpm override applies only to `packages/api`, so
+> it is valid rather than a conflict.
 
-Narration:
+### 1:25–1:55 — Restricted repair preview
 
-> This nested pnpm rule is valid. Escrow applies it only inside
-> `packages/api`; it is not reported as a conflict. Scope is deterministic and
-> never delegated to GPT-5.6.
+**Show:** Click **Preview instruction repair** and highlight the changed-file
+list and diff.
 
-### 1:15–1:50 — Restricted repair preview
+**Say:**
 
-Click **Preview instruction repair**.
+> I chose a narrow repair boundary: Codex may propose documentation changes,
+> but only for effective `AGENTS.md` or `AGENTS.override.md` files. Escrow
+> applies this proposal in another temporary worktree, inspects the real Git
+> diff, rejects source, test, package, lockfile, build, or CI changes, and
+> rejects new failures. This preview changes only `AGENTS.md` and leaves the
+> active demo untouched.
 
-Narration:
+### 1:55–2:15 — Revalidation and report
 
-> Codex receives only the instruction chain, failed claims, deterministic
-> evidence, and the exact instruction-file allowlist. Escrow applies the
-> proposal in an isolated worktree, rejects every non-instruction change, and
-> rejects new failures. Preview does not change the active demo checkout.
+**Show:** Click **Revalidate**, then **Download HTML** and open the report.
 
-Point out the `AGENTS.md`-only diff and before/after totals.
+**Say:**
 
-### 1:50–2:10 — Verified revalidation
+> Revalidation now passes all three remaining truthful instructions. The
+> static HTML preserves the same claims and totals as console, JSON, Markdown,
+> and the browser, with source locations and deterministic evidence. It opens
+> locally without a server.
 
-Click **Revalidate**.
+### 2:15–2:35 — GitHub Action and judge path
 
-Narration:
+**Show:** `action.yml`, then README **Judge Quick Test**.
 
-> This is the fresh report from the verified repair worktree. No application
-> source changed, and the page now says, “No broken instructions were found.”
+**Say:**
 
-The visible overall status is PASS. The repair remains a preview unless the
-confirmation checkbox and **Apply verified repair** are used.
+> The repository includes a composite GitHub Action and deterministic CI, plus
+> a copy-paste judge path that resets this fixture for repeatable runs. Normal
+> tests mock the Codex subprocess, so CI needs no model credential; the live
+> demo uses the judge's authenticated Codex CLI.
 
-### 2:10–2:30 — Downloadable evidence
+### 2:35–2:50 — Codex, GPT-5.6, and the human decisions
 
-Click **Download HTML** and open the downloaded file.
+**Show:** Return to the clean PASS report.
 
-Narration:
+**Say:**
 
-> Console, JSON, Markdown, HTML, and the browser all consume the same report
-> object and totals. The HTML is one escaped, self-contained file with no
-> server or React runtime.
-
-### 2:30–2:45 — AI boundary
-
-Narration:
-
-> GPT-5.6 is limited to claim extraction and minimal repair proposals. Zod,
-> repository validators, command policy, scope, totals, and repair acceptance
-> are deterministic. AI interprets language; repository evidence decides
-> truth.
+> I used Codex to plan, implement, test, security-review, debug, document, and
+> integrate Escrow. Inside the product, GPT-5.6 only extracts claims and
+> proposes restricted repairs. My key decision was that AI interprets
+> language, while deterministic repository evidence decides truth. Escrow
+> makes the instructions agents trust testable.
 
 ## Repeat or restore
 
-Stop the server with Ctrl+C. Restore the exact broken state at any time:
+Stop the server with Ctrl+C. Restore the exact broken demo at any time:
 
 ```bash
 npm run demo:reset
 ```
 
-The command removes and recreates only the ignored `.escrow-demo/` directory,
-then initializes and commits the copied fixture. Confirm the Escrow checkout
-was not changed:
+Confirm both the Escrow checkout and disposable demo state:
 
 ```bash
 git status --short
 git -C .escrow-demo/sample-monorepo status --short
 ```
 
-## Fallback if Codex is slow or unavailable
+The reset command removes and recreates only the ignored `.escrow-demo/`
+directory, copies the tracked sample fixture, initializes it as its own Git
+repository, and commits the broken baseline.
+
+## Fallback if the live model is slow or unavailable
 
 - Show `demo/sample-reports/broken-console.txt` and
-  `demo/sample-reports/broken-report.html`; state clearly that they were
-  generated earlier from the bundled fixture.
-- Use the automated demo workflow test as deterministic evidence:
+  `demo/sample-reports/broken-report.html` and say explicitly that they are
+  pre-generated examples from the bundled synthetic fixture.
+- Use the deterministic integration evidence:
 
 ```bash
-npx vitest run test/integration/demo/demoWorkflow.test.ts
+npx vitest run \
+  test/integration/demo/demoWorkflow.test.ts \
+  test/integration/demo/demoAssets.test.ts
 ```
 
-- Do not present a prerecorded result as a live Codex response. The fixture,
-  exact commands, sample artifacts, and reset command remain available for a
-  later live rerun.
+- If `gpt-5.6-luna` is unavailable to the authenticated account, set
+  `ESCROW_DEMO_MODEL` to an available GPT-5.6 variant and disclose that model
+  choice.
+- Do not describe prerecorded or mocked output as a live Codex response.
+
+## Verified story facts
+
+The bundled fixture's automated evidence verifies:
+
+- broken scan: `1 passed / 4 failed`;
+- failures: package manager, path, package script, and dependency;
+- health command: passed in an isolated worktree;
+- nested override: passed without a conflict;
+- repair preview: changed only `AGENTS.md`, active fixture unchanged;
+- repaired revalidation: `3 passed / 0 failed`, overall PASS; and
+- console, JSON, Markdown, HTML, UI, and UI downloads: identical totals.
+
+See [`case-study.md`](case-study.md) for the evidence and limitations behind
+these statements.

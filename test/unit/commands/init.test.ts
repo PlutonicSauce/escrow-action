@@ -32,7 +32,7 @@ describe("initializeRepository", () => {
     expect(dependencies.writes).toEqual([
       { path: "/repo/.github/workflows/escrow.yml", content: ESCROW_WORKFLOW_TEMPLATE },
     ]);
-    expect(ESCROW_WORKFLOW_TEMPLATE).toContain("PlutonicSauce/escrow-action@v1");
+    expect(ESCROW_WORKFLOW_TEMPLATE).toContain("PlutonicSauce/escrow@v0.1.0");
     expect(ESCROW_WORKFLOW_TEMPLATE).toContain("model: gpt-5.6-luna");
     expect(ESCROW_WORKFLOW_TEMPLATE).toContain("Publish pull-request summary");
     expect(ESCROW_WORKFLOW_TEMPLATE).toContain("Enforce Escrow result");

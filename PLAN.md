@@ -1086,6 +1086,37 @@ Also verify README instructions on a clean checkout.
   feature or dependency was added.
 - Every Definition of Done item in `SPEC.md` is satisfied; detailed evidence and
   known limitations are recorded in `IMPLEMENTATION.md`.
+- Potential-impact evidence was strengthened on 2026-07-16 without changing
+  product behavior or inventing metrics. Demo integration coverage now proves
+  the exact four stale claim types, the isolated passing command, the valid
+  nested override, a real instruction-only preview in a temporary worktree,
+  successful PASS revalidation, an unchanged active fixture, and identical
+  console/JSON/Markdown/HTML/UI totals. `docs/case-study.md` records the
+  realistic failure modes, deterministic evidence, repair boundary, and exact
+  observed fixture counts.
+- The OpenAI Build Week submission draft and canonical spoken demo were
+  reconciled on 2026-07-16. The draft now reflects the deterministic source
+  hydration architecture, current verified fixture and test evidence, actual
+  repository history, judge setup, explicit human design decisions, and
+  clearly marked submission placeholders. The canonical voiceover follows the
+  requested 2:50 timeline without changing product behavior.
+- A final submission audit on 2026-07-16 verified the public repository,
+  license, timing evidence, technology boundaries, secret-free regular CI,
+  package isolation, demo outcomes, report consistency, and repair
+  restrictions. The only repository defect found was a missing `--execute` in
+  the demo fixture README and reset-script startup hint; both now match the
+  canonical judge command and are regression-tested. Submission remains
+  operationally pending until the owner publishes the reviewed changes,
+  creates the release asset, and fills the entrant, video, and `/feedback`
+  fields.
+- Publication preparation on 2026-07-16 updated every active submission URL
+  to the renamed canonical repository, `PlutonicSauce/escrow`, including the
+  CI badge, Devpost clone command, judge release/source links, package metadata,
+  generated Action reference, and local origin. Historical regression strings
+  remain only in tests. Personal absolute filesystem paths were removed from
+  documentation, package metadata and workflow syntax were revalidated, and
+  the full 478-test suite plus isolated package smoke test passed. No commit,
+  push, tag, or release was performed.
 
 
 ---
@@ -1186,6 +1217,41 @@ IMPLEMENTATION.md
   verified preview changed only `AGENTS.md`, preview revalidation was
   `3 passed / 0 failed`, explicit apply succeeded, final scan was
   `3 passed / 0 failed`, and all three downloads returned HTTP 200.
+
+### Judge-ready package distribution — 2026-07-16
+
+- `npm pack` now runs the strict TypeScript build automatically through
+  `prepack` and includes the compiled CLI, both runtime schemas, package
+  metadata, README, and license.
+- Added an isolated package smoke test that packs Escrow, installs the tarball
+  under a temporary directory, verifies package contents, runs installed
+  `escrow --help` and `escrow --version`, proves the binary resolves inside the
+  installed package rather than the source checkout, and cleans up in
+  `finally`.
+- Added a version-tag-only GitHub Release workflow. Its verification job has
+  read-only contents permission; only the release-creation job receives
+  `contents: write`. It performs clean install, type checking, tests, build,
+  smoke installation, and a final pack before attaching the `.tgz`.
+- The workflow requires no model or OpenAI credential and never publishes to
+  npm or creates a tag.
+- Added a judge installation guide covering release-tarball installation,
+  prerequisites, compiled-package testing, the live prepared demo, model
+  availability, and exact uninstall commands without claiming a release
+  already exists.
+
+### Deterministic continuous integration — 2026-07-16
+
+- Added `.github/workflows/ci.yml` for pull requests and pushes to `main`.
+- The workflow uses only `contents: read`, GitHub-hosted Ubuntu, Node.js 20,
+  npm caching through `actions/setup-node`, concurrency cancellation, clean
+  install, type checking, the mocked deterministic suite, build, and the packed
+  artifact smoke test.
+- It contains no OpenAI credential, Codex invocation, Ollama dependency,
+  self-hosted runner, artifact write, or repository write permission.
+- The live Codex test remains isolated behind its separate manual Vitest config
+  and explicit environment gate; it is not part of `npm test`.
+- Added an accurate `main` branch badge for the `ci.yml` workflow near the top
+  of README.
 
 ---
 

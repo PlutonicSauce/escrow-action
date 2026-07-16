@@ -40,7 +40,7 @@ jobs:
           persist-credentials: false
 
       - id: escrow
-        uses: PlutonicSauce/escrow-action@v1
+        uses: PlutonicSauce/escrow@v0.1.0
         with:
           openai-api-key: \${{ secrets.OPENAI_API_KEY }}
           model: gpt-5.6-luna

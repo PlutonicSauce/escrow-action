@@ -76,6 +76,24 @@ describe("Milestone 13 demo assets", () => {
       overridden: 0,
     });
     expect(report.overallStatus).toBe("fail");
+    expect(
+      report.claims
+        .filter((claim) => claim.status === "failed")
+        .map((claim) => claim.type),
+    ).toEqual([
+      "package_manager",
+      "path_exists",
+      "package_script",
+      "dependency_present",
+    ]);
+    expect(report.claims.find((claim) => claim.type === "command_runs")).toMatchObject({
+      status: "passed",
+      commandResult: {
+        command: "node scripts/healthcheck.mjs",
+        exitCode: 0,
+        stdout: "sample healthcheck passed\n",
+      },
+    });
     expect(renderJsonReport(report)).toBe(json);
     expect(renderMarkdownReport(report)).toBe(markdown);
     expect(renderHtmlReport(report)).toBe(html);
@@ -83,11 +101,26 @@ describe("Milestone 13 demo assets", () => {
   });
 
   it("documents setup, architecture, safety, limitations, and the timed demo", async () => {
-    const [readme, architecture, demoScript, license] = await Promise.all([
+    const [
+      readme,
+      architecture,
+      demoScript,
+      demoReadme,
+      resetScript,
+      action,
+      site,
+      license,
+      caseStudy,
+    ] = await Promise.all([
       readFile(join(PROJECT_ROOT, "README.md"), "utf8"),
       readFile(join(PROJECT_ROOT, "docs/architecture.md"), "utf8"),
       readFile(join(PROJECT_ROOT, "docs/demo-script.md"), "utf8"),
+      readFile(join(PROJECT_ROOT, "demo/README.md"), "utf8"),
+      readFile(join(PROJECT_ROOT, "scripts/reset-demo.mjs"), "utf8"),
+      readFile(join(PROJECT_ROOT, "action.yml"), "utf8"),
+      readFile(join(PROJECT_ROOT, "site/index.html"), "utf8"),
       readFile(join(PROJECT_ROOT, "LICENSE"), "utf8"),
+      readFile(join(PROJECT_ROOT, "docs/case-study.md"), "utf8"),
     ]);
 
     for (const requiredText of [
@@ -106,7 +139,33 @@ describe("Milestone 13 demo assets", () => {
     expect(architecture).toContain("Trust boundaries");
     expect(demoScript).toContain("three minutes");
     expect(demoScript).toContain("repair");
+    expect(demoScript).toContain(
+      '--model "${ESCROW_DEMO_MODEL:-gpt-5.6-luna}" --execute',
+    );
+    expect(demoScript).not.toContain("gpt-5.6-terra");
+    for (const judgeSurface of [demoReadme, resetScript, action, site]) {
+      expect(judgeSurface).toContain("gpt-5.6-luna");
+    }
+    expect(demoReadme).toContain("gpt-5.6-luna --execute");
+    expect(resetScript).toContain("gpt-5.6-luna --execute");
+    expect(demoReadme).not.toContain("gpt-5.6-terra");
+    expect(resetScript).not.toContain("gpt-5.6-terra");
+    expect(site).not.toContain("gpt-5.6-terra");
     expect(license).toContain("MIT License");
+    for (const requiredText of [
+      "1 | 4",
+      "3 | 0",
+      "package_manager",
+      "path_exists",
+      "package_script",
+      "dependency_present",
+      "temporary Git worktree",
+      "active repository unchanged",
+      "Console, JSON, Markdown",
+      "has not measured time",
+    ]) {
+      expect(caseStudy).toContain(requiredText);
+    }
   });
 
   it("uses Escrow consistently across public package and documentation surfaces", async () => {
@@ -132,5 +191,53 @@ describe("Milestone 13 demo assets", () => {
       expect(content).toContain("Escrow");
       expect(content).not.toMatch(/AgentContract|ProofCatcher/u);
     }
+  });
+
+  it("keeps the Build Week submission draft and canonical demo story complete", async () => {
+    const [submission, demoScript] = await Promise.all([
+      readFile(join(PROJECT_ROOT, "docs/devpost-submission.md"), "utf8"),
+      readFile(join(PROJECT_ROOT, "docs/demo-script.md"), "utf8"),
+    ]);
+
+    for (const heading of [
+      "Project name",
+      "Selected track",
+      "The problem",
+      "What Escrow does",
+      "How it works",
+      "How Codex accelerated development",
+      "How GPT-5.6 is integrated at runtime",
+      "Key product and engineering decisions made by the builder",
+      "Technical challenges",
+      "Accomplishments",
+      "What was learned",
+      "What is next",
+      "Technologies used",
+      "Judge installation and testing",
+    ]) {
+      expect(submission).toContain(heading);
+    }
+    expect(submission).toContain("Developer Tools");
+    expect(submission).toContain("public YouTube URL");
+    expect(submission).toContain("Codex `/feedback` Session ID");
+    expect(submission).toContain("GitHub Release URL");
+    expect(submission).toContain("entrant/team information");
+    expect(submission).not.toContain("Codex generated the backend");
+
+    for (const timestamp of [
+      "0:00–0:15",
+      "0:15–0:55",
+      "0:55–1:25",
+      "1:25–1:55",
+      "1:55–2:15",
+      "2:15–2:35",
+      "2:35–2:50",
+    ]) {
+      expect(demoScript).toContain(timestamp);
+    }
+    expect(demoScript).toContain("This is the canonical Escrow judge story.");
+    expect(demoScript).toContain(
+      "AI interprets\n> language, while deterministic repository evidence decides truth.",
+    );
   });
 });

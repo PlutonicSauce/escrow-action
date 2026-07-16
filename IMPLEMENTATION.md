@@ -1615,8 +1615,8 @@ Final verification after updating IMPLEMENTATION.md:
 ### Commands run
 
 ```text
-node /Users/udaykandi/.codex/skills/.system/openai-docs/scripts/fetch-codex-manual.mjs
-node /Users/udaykandi/.codex/skills/.system/openai-docs/scripts/fetch-codex-manual.mjs
+node <codex-home>/skills/.system/openai-docs/scripts/fetch-codex-manual.mjs
+node <codex-home>/skills/.system/openai-docs/scripts/fetch-codex-manual.mjs
 codex exec --help
 npm run typecheck
 npm run typecheck
@@ -3614,7 +3614,7 @@ After repository history became available, the flow was repeated from an
 actual clone rather than a source copy:
 
 ```text
-git clone --no-local /Users/udaykandi/Desktop/Projects/Escrow \
+git clone --no-local <local-escrow-checkout> \
   /private/tmp/escrow-onboarding-clone.h3yW9E/Escrow
   PASS; cloned HEAD 3b7b25323e103dea0dd4e67a5ed73635380d97d1;
   clean status; no node_modules or dist
@@ -4323,3 +4323,738 @@ npm run typecheck
 npm test -- --reporter=dot
   PASS; 38 test files, 464 tests, 5.84s
 ```
+
+## OpenAI Build Week model-reference audit — 2026-07-16
+
+### Completed
+
+- Removed the duplicated demo command that left a continued Terra invocation
+  followed by a standalone Luna `--model` line.
+- Standardized all active OpenAI Build Week judge surfaces on
+  `gpt-5.6-luna`: the timed demo, demo fixture README, reset script output,
+  judge-facing site, composite Action, checked-in workflow, generated workflow,
+  Actions guide, README, and Devpost description.
+- Retained `gpt-5.6-terra` as the generic CLI default in
+  `src/extraction/extractClaims.ts` and aligned the active README, specification,
+  and Devpost description with that existing behavior.
+- Reviewed every Sol, Terra, Luna, and generic GPT-5.6 occurrence. Historical
+  Sol/Luna acceptance records in this file remain unchanged; generic GPT-5.6
+  prose remains where it describes the model family rather than a selectable
+  default; synthetic custom-model strings remain in parsing tests.
+- Removed the obsolete README claim that a former environment-variable name
+  remained supported.
+- Added regression coverage proving the timed demo uses Luna, contains no
+  Terra command, and that the demo README, reset output, Action, and site all
+  retain Luna.
+
+### Shell-command validation
+
+Parsed every active `bash`, `sh`, or `shell` fenced block in:
+
+- `README.md`
+- `docs/demo-script.md`
+- `docs/devpost-submission.md`
+- `demo/README.md`
+
+All 21 blocks passed `bash -n`. A separate continuation scan found no
+backslash followed by a blank line and a command option. Copying the judge
+quick-test command therefore cannot execute `--model` as a second command.
+
+### Files changed
+
+- `README.md`
+- `SPEC.md`
+- `docs/demo-script.md`
+- `docs/devpost-submission.md`
+- `demo/README.md`
+- `scripts/reset-demo.mjs`
+- `site/index.html`
+- `test/integration/demo/demoAssets.test.ts`
+- `IMPLEMENTATION.md`
+
+`action.yml`, `.github/workflows/escrow.yml`, `src/commands/init.ts`, and
+`docs/github-actions.md` were reviewed and already used Luna, so they required
+no edit. `package.json` was reviewed and contains no model default.
+
+### Commands and results
+
+```text
+Repository-wide GPT-5.6 reference search
+  PASS; every occurrence reviewed individually
+
+Active fenced-shell bash -n validation
+  PASS; 21 blocks
+
+Continuation-gap scan
+  PASS; no results
+
+npx vitest run test/integration/demo/demoAssets.test.ts \
+  test/unit/commands/init.test.ts
+  PASS; 2 files, 7 tests, 437ms
+
+npm run demo:reset
+  PASS; printed gpt-5.6-luna startup command
+
+npm run typecheck
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 39 test files, 473 tests, 7.29s
+
+npm run build
+  PASS
+
+git diff --check
+  PASS
+```
+
+### Model availability concern
+
+Model availability remains account- and Codex-version-dependent. The judge
+workflow explicitly selects Luna, while `ESCROW_DEMO_MODEL` and `--model`
+remain documented escape hatches when Luna is unavailable. No model call was
+required for this documentation/configuration audit.
+
+## OpenAI Build Week README submission evidence — 2026-07-16
+
+### Completed
+
+- Added a judge-facing `Built with Codex and GPT-5.6 during OpenAI Build Week`
+  section near the top of `README.md`.
+- Grounded the build-period statement in the repository history: the first
+  tracked commit is dated July 13, 2026, followed by implementation, tests, UI,
+  CI, safety, documentation, and reliability commits through July 16.
+- Avoided claiming that all ideas or artifacts were created during the event;
+  the README states only what the tracked history proves.
+- Summarized repository-supported Codex contributions across architecture
+  planning, TypeScript iteration, tests and fixtures, security review,
+  debugging, documentation, onboarding, demo preparation, and UI integration.
+- Added two explicit team-confirmation TODOs rather than inventing personal
+  history.
+- Documented the human-selected trust boundary: AI interpretation and repair
+  proposals, deterministic verdicts, opt-in worktree execution, and strict
+  instruction-file-only repair.
+- Clearly separated building Escrow with Codex from Escrow invoking Codex at
+  runtime for claim extraction and restricted repair proposals.
+- Added the Luna rationale for structured, repeatable extraction and linked
+  judges to the quick test, architecture, dated implementation history, and
+  three-minute walkthrough.
+- Added a concise `Why Escrow is different` section without making first,
+  only, novelty, hosted-demo, npm-release, or GitHub-release claims.
+
+### Checks and results
+
+```text
+Git history audit beginning 2026-07-13
+  PASS; first tracked commit 25e5244 on 2026-07-13
+
+README local-link and Markdown-fence check
+  PASS; all local targets exist, 24 fence markers balanced
+
+README fenced-shell bash -n check
+  PASS; 12 shell blocks
+
+npx vitest run test/integration/demo/demoAssets.test.ts \
+  test/unit/reporting/markdownReporter.test.ts \
+  test/unit/reporting/reportConsistency.test.ts
+  PASS; 3 files, 12 tests, 434ms
+
+npm run typecheck
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 39 test files, 473 tests, 7.08s
+
+npm run build
+  PASS
+```
+
+### Personal confirmation still required
+
+- Confirm whether any prototype, design, or code existed before the first
+  tracked July 13 commit.
+- Optionally provide a personal example of the most useful Codex-assisted
+  development moment for the submission narrative.
+
+## Judge-ready package distribution — 2026-07-16
+
+### Completed
+
+- Added `prepack: npm run build`, so a normal `npm pack` compiles TypeScript
+  before npm constructs the tarball.
+- Made the intended payload explicit in `package.json`: `dist`, `schemas`,
+  `README.md`, and `LICENSE`. npm also supplies the package manifest.
+- Added `scripts/package-smoke.mjs` and `npm run package:smoke`. The script:
+  - creates an isolated temporary root and npm cache;
+  - builds and packs Escrow;
+  - verifies the required tarball entries;
+  - installs the tarball into an unrelated temporary project;
+  - resolves the installed `.bin/escrow` target canonically;
+  - rejects a target inside the original checkout;
+  - runs installed `escrow --help` and `escrow --version`;
+  - checks the installed schemas, README, and license; and
+  - removes the full temporary root in `finally`.
+- Added `.github/workflows/release.yml`, triggered only by version tags matching
+  `v*.*.*`. The verification job uses `contents: read`; only the dependent
+  release job uses `contents: write`.
+- The release workflow verifies that the tag matches `package.json`, runs
+  `npm ci`, type checking, tests, build, and the package smoke test, creates a
+  fresh `.tgz`, transfers it as a workflow artifact, and attaches it to a
+  GitHub Release with `gh release create`.
+- The workflow contains no OpenAI credential, model call, npm publication, tag
+  creation, or tag push.
+- Added `docs/judge-installation.md` with macOS/Linux, Node.js, Git, and Codex
+  requirements; local tarball installation; no-model package checks; the live
+  prepared demo; GPT-5.6 availability troubleshooting; and exact local/global
+  uninstall commands.
+- Linked the guide from README while explicitly stating that no GitHub Release
+  is currently claimed.
+- Added focused package metadata and release-workflow tests, and included the
+  packaging integration directory in the normal Vitest suite.
+
+### Files changed
+
+- `package.json`
+- `scripts/package-smoke.mjs`
+- `.github/workflows/release.yml`
+- `docs/judge-installation.md`
+- `test/integration/packaging/packageDistribution.test.ts`
+- `vitest.config.ts`
+- `README.md`
+- `PLAN.md`
+- `IMPLEMENTATION.md`
+
+`package-lock.json`, `tsconfig.json`, `action.yml`, runtime schema resolution,
+validators, execution policy, repair restrictions, and product behavior were
+inspected and did not require changes.
+
+### Verification
+
+```text
+node --check scripts/package-smoke.mjs
+  PASS
+
+npx vitest run test/integration/packaging/packageDistribution.test.ts
+  PASS; 1 file, 2 tests, 342ms
+
+npm run package:smoke
+  PASS; packed escrow-0.1.0.tgz, installed version 0.1.0 outside the checkout,
+  help and version succeeded, temporary root cleaned
+
+README and judge-guide local-link check
+  PASS; all local targets exist
+
+README and judge-guide Markdown-fence check
+  PASS; balanced fences
+
+README and judge-guide fenced-shell bash -n check
+  PASS; 18 shell blocks
+
+Ruby YAML parse of .github/workflows/release.yml
+  PASS
+
+npm ci
+  PASS; 50 packages installed, 51 audited, 0 vulnerabilities
+
+npm run typecheck
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 40 test files, 475 tests, 8.85s
+
+npm run build
+  PASS
+
+npm run package:smoke
+  PASS; installed binary resolved to the temporary installed package,
+  version 0.1.0
+
+npm pack --dry-run --json
+  PASS; prepack build ran automatically; escrow-0.1.0.tgz was 112,283 bytes,
+  502,151 bytes unpacked, 205 entries, executable dist/index.js, both schemas,
+  package.json, README, LICENSE, and no bundled dependencies
+
+git diff --check
+  PASS
+```
+
+No package, tag, release, commit, push, or npm publication was created.
+
+### Known limitations
+
+- Installing the tarball downloads its declared Commander and Zod dependencies
+  from npm unless they are already cached.
+- Package installation and `--help`/`--version` require no Codex access. Live
+  extraction or repair still requires an authenticated Codex CLI and an
+  available selected model.
+- A maintainer must deliberately update/confirm the package version, commit the
+  release-ready tree, and push a matching version tag before the release
+  workflow can create the first GitHub Release.
+
+## Deterministic continuous integration — 2026-07-16
+
+### Completed
+
+- Added `.github/workflows/ci.yml` with triggers for every pull request and
+  pushes to the confirmed default development branch, `main`.
+- Added concurrency keyed by workflow plus pull request number or Git ref, with
+  cancellation of superseded runs.
+- Set workflow permissions to `contents: read` only.
+- Used a GitHub-hosted Ubuntu runner, `actions/checkout@v5`, and
+  `actions/setup-node@v5` with Node.js 20 and npm dependency caching.
+- The job runs, in order: `npm ci`, `npm run typecheck`, `npm test`,
+  `npm run build`, and `npm run package:smoke`.
+- Added an accurate README badge targeting `.github/workflows/ci.yml` on
+  `main`. The legacy repository slug is URL-encoded in the badge URL so the
+  public Escrow branding regression remains valid while the link resolves to
+  the actual repository.
+- Extended packaging integration coverage to verify CI triggers, permissions,
+  concurrency, runner, official actions, Node/npm cache, commands, badge, and
+  the absence of write permission, OpenAI/API credentials, Codex, Ollama, or
+  self-hosted runners.
+
+### Live-model isolation audit
+
+- `vitest.config.ts` includes unit, command-execution, repair, demo, packaging,
+  and loopback-web suites only.
+- The sole live Codex test remains in
+  `test/integration/extraction/codex.manual.test.ts`, which is available only
+  through `vitest.manual.config.ts` and additionally requires
+  `ESCROW_RUN_CODEX_INTEGRATION=1` plus an installed Codex CLI.
+- Normal extraction, repair, demo, and UI tests inject mocked Codex process
+  runners. Normal web tests use only `127.0.0.1`.
+- Therefore `npm test` requires no authentication, model access, OpenAI key,
+  Ollama service, or external inference network.
+
+### Files changed
+
+- `.github/workflows/ci.yml`
+- `README.md`
+- `test/integration/packaging/packageDistribution.test.ts`
+- `PLAN.md`
+- `IMPLEMENTATION.md`
+
+### Checks and local CI equivalent
+
+```text
+Ruby YAML parse of .github/workflows/ci.yml
+  PASS
+
+npx vitest run test/integration/packaging/packageDistribution.test.ts \
+  test/integration/demo/demoAssets.test.ts
+  PASS; 2 files, 8 tests, 418ms
+
+git diff --check
+  PASS
+
+npm ci
+  PASS; 50 packages installed, 51 audited, 0 vulnerabilities
+
+npm run typecheck
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 40 test files, 476 tests, 7.37s
+
+npm run build
+  PASS
+
+npm run package:smoke
+  PASS; escrow-0.1.0.tgz installed outside the checkout, help/version passed,
+  installed version 0.1.0, temporary root cleaned
+```
+
+No workflow was triggered or rerun externally. No repository setting,
+credential, commit, push, or write permission was changed.
+
+## Potential-impact fixture evidence — 2026-07-16
+
+### Completed
+
+- Audited `demo/sample-monorepo`, the nested override, reset workflow,
+  checked-in sample reports, reporting commands, demo script, demo tests, and
+  Escrow's own effective instruction chain.
+- Strengthened the demo integration workflow so it proves exactly five
+  validated root claims: four failures (`package_manager`, `path_exists`,
+  `package_script`, and `dependency_present`) plus one passing
+  `command_runs` result with exit code 0 and
+  `sample healthcheck passed`.
+- Kept the valid `packages/api/AGENTS.override.md` behavior explicit: the
+  broader package-manager claim is overridden, the nested pnpm claim passes,
+  and no conflict is produced.
+- Replaced the direct repaired-file test with the real restricted repair
+  lifecycle. The mocked Codex subprocess supplies only the proposed unified
+  diff; Escrow creates the temporary repair worktree, restricts the changed
+  file to `AGENTS.md`, runs fresh extraction and deterministic validators,
+  re-executes the safe command, obtains `3 passed / 0 failed`, cleans up, and
+  leaves the active fixture byte-for-byte unchanged and Git-clean.
+- Added cross-surface assertions for all seven summary fields. Console, JSON,
+  Markdown, static HTML, the UI scan response, and all UI report download
+  endpoints consume and expose the same `1 passed / 4 failed` report.
+- Added `docs/case-study.md`, linked it from README and the demo script, and
+  documented each realistic stale-instruction risk, the exact repository
+  evidence, nested scope, repair constraints, observed fixture totals, test
+  boundaries, and reproduction commands. It explicitly disclaims unmeasured
+  time savings, users, adoption, customers, and external deployment impact.
+
+### Dogfooding attempt
+
+- `codex --version` reported `codex-cli 0.144.3`.
+- `codex login status` reported `Logged in using ChatGPT`.
+- Attempted the requested read-only command:
+
+```text
+node dist/index.js check . --model gpt-5.6-luna \
+  --json docs/dogfood-report-2026-07-16.json
+```
+
+- The execution environment rejected the external transfer before Codex was
+  invoked because scanning Escrow itself would send repository instruction
+  content to an external service without an additional repository-content
+  approval. No content was sent, no live result was fabricated, and no dated
+  report file was created. `docs/case-study.md` preserves the reproducible
+  command for a repository owner who approves that transfer.
+
+### Files changed
+
+- `README.md`
+- `docs/case-study.md`
+- `docs/demo-script.md`
+- `test/integration/demo/demoWorkflow.test.ts`
+- `test/integration/demo/demoAssets.test.ts`
+- `PLAN.md`
+- `IMPLEMENTATION.md`
+
+Validators, verdict aggregation, report implementation, command policy,
+repair restrictions, the tracked demo fixture, reset script, and checked-in
+sample report artifacts were not weakened or changed.
+
+### Verification
+
+```text
+npx vitest run test/integration/demo/demoWorkflow.test.ts \
+  test/integration/demo/demoAssets.test.ts --reporter=dot
+  PASS; 2 files, 9 tests, 2.83s
+
+npm run typecheck
+  PASS
+
+npm run build
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 40 files, 477 tests, 7.30s
+```
+
+No commit or push was performed.
+
+## OpenAI Build Week submission draft — 2026-07-16
+
+### Completed
+
+- Audited `README.md`, the dated implementation record, architecture, canonical
+  demo materials, fixture case study, package metadata, composite Action, and
+  current Git history before rewriting the submission draft.
+- Confirmed the tracked history begins with implementation commits dated July
+  13, 2026 and retained the existing qualification that history does not prove
+  every idea or artifact began from scratch during the event.
+- Replaced the stale Devpost draft with a judge-oriented Developer Tools
+  submission covering the problem, product, pipeline, Codex-assisted build
+  work, runtime GPT-5.6 boundaries, builder decisions, technical challenges,
+  accomplishments, lessons, roadmap, technologies, repository URL, setup,
+  testing, limitations, and license.
+- Corrected the extraction description to the current two-stage boundary:
+  Codex emits raw source locations and normalized fields; Escrow validates the
+  discovered file and range, derives scope, reconstructs exact source text
+  from disk, and only then accepts the hydrated claim.
+- Grounded accomplishments in current repository evidence: the deterministic
+  `1 passed / 4 failed` fixture, valid nested override, instruction-only repair
+  preview, `3 passed / 0 failed` revalidation, consistent report/UI totals,
+  package smoke flow, composite Action, and 478-test suite.
+- Added explicit placeholders for the public YouTube URL, Codex `/feedback`
+  Session ID, GitHub Release URL, entrant/team information, pre-event work
+  confirmation, and an optional personal Codex-development example. No URL,
+  session, release, entrant, metric, adoption, customer, or award fact was
+  invented.
+- Reworked `docs/demo-script.md` into the single canonical story with every
+  requested timestamp from 0:00 through 2:50. Its 352 spoken words explain the
+  product, stale fixture, deterministic evidence, nested scope, restricted
+  repair, revalidation, report, Action/judge path, Codex-assisted development,
+  runtime GPT-5.6 role, and human-selected trust boundary.
+- Preserved preparation, reset, cleanup, model-availability, offline-report,
+  and deterministic-test fallback instructions outside the timed narration.
+- Added a focused documentation regression test for required submission
+  sections, placeholders, the canonical timeline, and the specific human/AI
+  decision statement.
+
+### Files changed
+
+- `docs/devpost-submission.md`
+- `docs/demo-script.md`
+- `test/integration/demo/demoAssets.test.ts`
+- `PLAN.md`
+- `IMPLEMENTATION.md`
+
+No validator, verdict, CLI, UI, report, command, repair, package, or Action
+behavior changed.
+
+### Verification
+
+```text
+Local Markdown-link validation for both edited documents
+  PASS; every repository-relative target exists
+
+Fenced-shell bash syntax validation
+  PASS; 2 Devpost blocks and 4 canonical-demo blocks
+
+npx vitest run test/integration/demo/demoAssets.test.ts --reporter=dot
+  PASS; 1 file, 6 tests, 467ms
+
+npm run typecheck
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 40 files, 478 tests, 8.35s
+
+npm run build
+  PASS
+```
+
+No video was uploaded, no Devpost submission was made, and no release, commit,
+or push was performed.
+
+## Final OpenAI Build Week submission audit — 2026-07-16
+
+### Read-only audit evidence
+
+- Confirmed the root commit is `25e5244`, dated July 13, 2026, and the active
+  README/submission text does not claim that Git history proves every idea or
+  artifact originated during the event.
+- Confirmed unauthenticated HTTPS `git ls-remote` access to the GitHub
+  repository at HEAD `b3ed4bb`; `LICENSE` is tracked and contains the MIT
+  license. The public repository currently has no tags.
+- Reviewed every active Terra/Luna reference. `gpt-5.6-terra` remains the
+  generic CLI default; `gpt-5.6-luna` remains the explicit Build Week demo,
+  Action, and generated-workflow selection. Sol references occur only in dated
+  implementation history. No active model instruction conflicts.
+- Found no merge-conflict markers. All active TODOs are explicitly presented
+  as incomplete personal/submission fields; none is represented as finished.
+- Found no tracked `.codex`, authentication, environment, credential, or key
+  files and no private-key or common token-shaped secret values in the
+  repository scan. Workflow secret names are references, not committed secret
+  values. Regular `.github/workflows/ci.yml` has `contents: read` only and no
+  model credential or live Codex call.
+- Confirmed README setup, macOS/Linux support, tests, sample fixture, Codex
+  development role, runtime GPT-5.6 boundary, builder decisions, and judge
+  quick test. The Devpost draft selects Developer Tools and retains visible
+  TODOs for YouTube, `/feedback`, release, and entrant/team data.
+- Confirmed the 352-word canonical narration covers the product, Codex-assisted
+  development, runtime GPT-5.6, and the builder-selected deterministic trust
+  boundary within its 2:50 schedule.
+- Confirmed all active local Markdown links, fenced shell syntax, and adjacent
+  command duplication checks pass.
+
+### Low-risk defect fixed
+
+- `demo/README.md` and the startup command printed by
+  `scripts/reset-demo.mjs` omitted `--execute`. Following either command would
+  scan the four stale claims but leave the promised safe health command
+  inconclusive instead of passed.
+- Added `--execute` to both surfaces and added regression assertions. No
+  validator, execution policy, report, repair, package, or external workflow
+  behavior changed.
+
+### Files changed by this audit
+
+- `demo/README.md`
+- `scripts/reset-demo.mjs`
+- `test/integration/demo/demoAssets.test.ts`
+- `PLAN.md`
+- `IMPLEMENTATION.md`
+
+### Commands and results
+
+```text
+git status --short
+  PASS; recorded the existing reviewed but uncommitted submission changes
+
+rg -n '<<<<<<<|=======|>>>>>>>|TODO|PLACEHOLDER|gpt-5\\.6-(sol|terra|luna)' .
+  PASS; no conflict markers; only explicit TODOs and reviewed model references
+
+Unauthenticated git ls-remote for public HEAD
+  PASS; b3ed4bb9f4a3bddde7e2a445bc0a15a7ceb789b9
+
+Unauthenticated git ls-remote --tags
+  PASS; no public tags returned
+
+Tracked/local-state and token-shaped secret scans
+  PASS; no secret material or Codex state found
+
+npm ci
+  PASS; 50 packages installed
+
+npm run typecheck
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 40 files, 478 tests, 8.00s
+
+npm run build
+  PASS
+
+npm run package:smoke
+  PASS; escrow-0.1.0.tgz installed outside the checkout, installed CLI help
+  and version succeeded, and the temporary package root was cleaned
+
+npx vitest run test/integration/demo/demoWorkflow.test.ts \
+  test/integration/demo/demoAssets.test.ts --reporter=dot
+  PASS; 2 files, 10 tests, 2.96s after the command correction
+
+npx vitest run test/integration/repair/repairWorkflow.test.ts \
+  test/unit/repair/repairPrompt.test.ts \
+  test/unit/reporting/reportConsistency.test.ts --reporter=dot
+  PASS; 3 files, 18 tests, 6.08s
+
+node --check scripts/reset-demo.mjs && npm run demo:reset
+  PASS; reset fixture was clean and printed the Luna command with --execute
+
+Markdown link, fenced-shell syntax, and adjacent-command checks
+  PASS
+
+git diff --check
+  PASS
+```
+
+The first sandboxed package-smoke attempt was interrupted after its deliberately
+fresh npm cache could not reach the registry. The approved read-only network
+retry passed. No live model request or external write was made.
+
+### Submission blockers requiring the owner
+
+- The reviewed local changes are not yet committed or pushed, so the public
+  repository does not contain the final submission state.
+- No public release tag or GitHub Release tarball exists. The package is
+  verified, but the advertised no-build judge installation path remains
+  pending until the owner creates the release.
+- Public YouTube URL, Codex `/feedback` Session ID, entrant/team information,
+  and the factual pre-event-work confirmation remain incomplete.
+
+No commit, push, tag, package publication, GitHub Release, video upload, or
+Devpost submission was performed.
+
+## Publication preparation — 2026-07-16
+
+### Repository and diff audit
+
+- Captured the dirty worktree, old SSH origin, `main` branch, latest five
+  commits, and every repository occurrence of the former ProofCatcher name
+  before editing.
+- Reviewed the complete tracked diff and every untracked workflow,
+  documentation file, package script, and integration test. The pending files
+  are intentional publication assets; no generated `dist`, coverage, package
+  tarball, disposable demo checkout, credential, or local Codex-state file is
+  included.
+- Reviewed all legacy-name matches individually. The only remaining
+  `ProofCatcher` strings are negative branding regression assertions in tests;
+  they are not URLs, product branding, documentation, or historical evidence
+  presented to judges.
+- Scanned added content and the whole publication surface for secret/token
+  shapes, private keys, unsupported metrics or adoption claims, absolute
+  personal paths, conflict markers, accidental completed placeholders, and
+  duplicate shell commands. No publication blocker was found.
+
+### Canonical repository corrections
+
+- Updated the README CI badge, Devpost repository and clone links, judge
+  Releases/source links, and release-workflow metadata to
+  `https://github.com/PlutonicSauce/escrow`.
+- Added npm metadata for MIT licensing, the canonical Git repository, project
+  homepage, and issue tracker. Regenerated only the root package-lock metadata,
+  which added the matching MIT license field.
+- Updated the reusable composite-Action documentation and generated workflow
+  from the planned separate `escrow-action@v1` repository to the canonical
+  `PlutonicSauce/escrow@v0.1.0` release tag, with focused regression coverage.
+- Updated the local origin to `git@github.com:PlutonicSauce/escrow.git` and
+  verified the canonical HTTPS URL resolves without credentials to HEAD
+  `b3ed4bb9f4a3bddde7e2a445bc0a15a7ceb789b9`.
+- Replaced three personal absolute paths in historical implementation commands
+  with descriptive placeholders while preserving the recorded operation and
+  result. No `/Users/...` path remains in committed documentation candidates.
+- Preserved the clearly incomplete GitHub Release, YouTube, entrant/team, and
+  Codex `/feedback` placeholders.
+
+### Files changed specifically for publication preparation
+
+- `README.md`
+- `docs/devpost-submission.md`
+- `docs/judge-installation.md`
+- `docs/github-actions.md`
+- `.github/workflows/release.yml`
+- `package.json`
+- `package-lock.json`
+- `src/commands/init.ts`
+- `test/unit/commands/init.test.ts`
+- `test/integration/packaging/packageDistribution.test.ts`
+- `PLAN.md`
+- `IMPLEMENTATION.md`
+- local Git configuration: `origin` URL only
+
+### Commands and exact results
+
+```text
+git status --short
+git remote -v
+git branch --show-current
+git log -5 --oneline
+rg -n 'PlutonicSauce/ProofCatcher|github\\.com/PlutonicSauce/ProofCatcher|ProofCatcher' .
+  PASS; initial state captured; every match reviewed
+
+Canonical and legacy URL scans
+  PASS; active surfaces use PlutonicSauce/escrow; only negative regression
+  assertions retain ProofCatcher
+
+Personal absolute-path scan across publication documentation
+  PASS; no /Users path remains
+
+Secret, credential, Codex-state, conflict-marker, placeholder, generated-file,
+and unsupported-claim review
+  PASS
+
+Unauthenticated canonical HTTPS git ls-remote
+  PASS; HEAD b3ed4bb9f4a3bddde7e2a445bc0a15a7ceb789b9
+
+npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+  PASS; package lock synchronized
+
+npm ci
+  PASS; 50 packages installed
+
+npm run typecheck
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 40 files, 478 tests, 7.34s
+
+npm run build
+  PASS
+
+npm run package:smoke
+  PASS; escrow-0.1.0.tgz installed outside the source checkout; installed help
+  and version succeeded; temporary files cleaned
+
+npx vitest run test/integration/packaging/packageDistribution.test.ts \
+  test/unit/commands/init.test.ts --reporter=dot
+  PASS; 2 files, 5 tests, 358ms
+
+Workflow YAML and package/package-lock JSON parsing
+  PASS
+
+Documentation local-link and fenced-shell syntax checks
+  PASS
+
+git diff --check
+  PASS
+```
+
+No commit, push, tag, publication, release, video upload, or Devpost submission
+was performed.

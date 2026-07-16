@@ -179,7 +179,7 @@ Supported flags:
 Default model:
 
 ```text
-gpt-5.6
+gpt-5.6-terra
 ```
 
 Environment override:

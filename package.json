@@ -2,19 +2,31 @@
   "name": "escrow",
   "version": "0.1.0",
   "description": "Executable verification for coding-agent repository instructions.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PlutonicSauce/escrow.git"
+  },
+  "homepage": "https://github.com/PlutonicSauce/escrow#readme",
+  "bugs": {
+    "url": "https://github.com/PlutonicSauce/escrow/issues"
+  },
   "type": "module",
   "bin": {
     "escrow": "dist/index.js"
   },
   "files": [
     "dist",
-    "schemas"
+    "schemas",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "test": "vitest run",
     "test:codex-integration": "vitest run --config vitest.manual.config.ts",
-
+    "prepack": "npm run build",
+    "package:smoke": "node scripts/package-smoke.mjs",
     "site": "node site/server.mjs",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "demo:reset": "node scripts/reset-demo.mjs"

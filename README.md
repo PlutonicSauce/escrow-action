@@ -1,6 +1,8 @@
 
 # Escrow
 
+[![CI](https://github.com/PlutonicSauce/escrow/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/PlutonicSauce/escrow/actions/workflows/ci.yml?query=branch%3Amain)
+
 > Executable tests for the instructions coding agents rely on.
 
 Escrow verifies whether `AGENTS.md` and `AGENTS.override.md` still match
@@ -9,6 +11,75 @@ claims, then assigns every status through deterministic TypeScript validators.
 It can optionally execute documented commands in isolated Git worktrees,
 produce four evidence-report formats, and preview or apply restricted repairs
 to instruction files only.
+
+## Why Escrow is different
+
+Most instruction-enforcement tools ask whether an agent followed its
+instructions. Escrow asks whether the instructions themselves still match
+repository reality. It combines deterministic repository evidence, nested
+instruction scope, opt-in command verification in isolated Git worktrees, and
+restricted instruction-only repair without claiming to be the first or only
+tool in this category.
+
+## Built with Codex and GPT-5.6 during OpenAI Build Week
+
+The tracked implementation history begins with commits on July 13, 2026,
+during the July 13–21 OpenAI Build Week submission period. The repository then
+records validation tests, architecture and safety iteration, the local UI,
+demo/onboarding work, GitHub Actions integration, and follow-up reliability
+fixes. See the [dated implementation history](IMPLEMENTATION.md) and
+the repository history beginning July 13 (`git log --since=2026-07-13`).
+This evidence establishes when tracked implementation began; it does not by
+itself prove that every idea or artifact was created from scratch during the
+event.
+
+### Built with Codex
+
+The implementation record documents Codex-assisted architecture planning,
+focused TypeScript implementation and iteration, fixture and test generation,
+security reviews, failure debugging, documentation, onboarding, demo
+preparation, and local UI integration. Codex accelerated the build loop while
+the repository's tests and deterministic code remained the acceptance
+authority.
+
+- **TODO — team confirmation:** Confirm whether any prototype, design, or code
+  existed before the first tracked commit on July 13, 2026.
+- **TODO — team confirmation:** Add a short personal account of the most useful
+  Codex-assisted development moment, if desired for the submission narrative.
+
+### Key human decisions
+
+- Codex and GPT-5.6 may interpret natural-language claims and propose minimal
+  instruction repairs; they never assign final verdicts.
+- Deterministic TypeScript validators assign every passed, failed, warning,
+  blocked, inconclusive, advisory, and overridden status.
+- Documented commands run only after explicit opt-in and only inside temporary
+  Git worktrees, never in the active checkout.
+- Repair proposals are restricted to effective `AGENTS.md` and
+  `AGENTS.override.md` files.
+- Source code, tests, package/build configuration, CI files, lockfiles, and
+  unrelated files cannot be repaired.
+
+### Codex at runtime
+
+This is separate from using Codex to build Escrow. At runtime, Escrow invokes
+Codex in a read-only sandbox for two narrow tasks: schema-constrained claim
+extraction with source locations, and the smallest truthful instruction-file
+repair proposal from deterministic failures and evidence. The OpenAI Build
+Week judge workflow selects `gpt-5.6-luna` because Escrow's primary model task
+is structured, repeatable extraction and classification. Zod validates model
+output again; deterministic code hydrates repository evidence, validates
+claims, calculates totals, enforces command policy, and accepts or rejects
+repairs. See the [architecture and trust boundaries](docs/architecture.md).
+
+### Judge verification
+
+The fastest path is the [Judge Quick Test](#judge-quick-test) below. The
+[three-minute walkthrough](docs/demo-script.md) shows the intended scan,
+four deterministic failures, restricted repair preview, revalidation, and
+static HTML report. Run it from this checkout on macOS or Linux with Node.js
+20+, Git, npm, and an installed, authenticated Codex CLI with access to the
+selected model.
 
 ## Supported claim types
 
@@ -65,6 +136,10 @@ escrow --help
 No OpenAI SDK or application API key is read directly by Escrow. Codex
 CLI owns authentication. The CLI may use a saved ChatGPT login or an API-key
 login, subject to the account and workspace configuration.
+
+For a future tagged package, see
+[judge installation from a GitHub Release](docs/judge-installation.md). This
+repository does not claim that a GitHub Release currently exists.
 
 ## Judge Quick Test
 
@@ -214,12 +289,12 @@ Codex is used only at two natural-language boundaries:
 2. Repair proposal: GPT-5.6 proposes the smallest documentation-only unified
    diff from failed claims and deterministic evidence.
 
-Override the model with `--model <model>` or `ESCROW_CODEX_MODEL`
-(`AGENTCONTRACT_CODEX_MODEL` remains supported for compatibility).
-Model availability depends on the authenticated account. The browser demo and
-GitHub Action use `gpt-5.6-luna` explicitly; set `ESCROW_DEMO_MODEL` or pass
-`--model` when another available GPT-5.6 variant is required. The generic CLI
-default remains configurable through `ESCROW_CODEX_MODEL`.
+Override the model with `--model <model>` or `ESCROW_CODEX_MODEL`.
+Model availability depends on the authenticated account. The generic CLI
+default is `gpt-5.6-terra`. The OpenAI Build Week judge demo and GitHub Action
+use `gpt-5.6-luna` explicitly because their primary model task is structured
+claim extraction and classification. Set `ESCROW_DEMO_MODEL` or pass `--model`
+when another available GPT-5.6 variant is required.
 Codex never assigns pass/fail/warning/blocked/inconclusive/overridden verdicts,
 never determines instruction applicability, and never applies a repair.
 
@@ -275,6 +350,7 @@ demo, a valid nested override, isolated command execution, restricted repair,
 and all report formats:
 
 - [three-minute demo script](docs/demo-script.md)
+- [fixture case study and observed evidence](docs/case-study.md)
 - [sample monorepo](demo/sample-monorepo)
 - [dangerous-command fixture](demo/dangerous-command-fixture)
 - [sample reports](demo/sample-reports)

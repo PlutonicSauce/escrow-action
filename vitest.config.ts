@@ -7,6 +7,7 @@ export default defineConfig({
       "test/integration/command-execution/**/*.test.ts",
       "test/integration/repair/**/*.test.ts",
       "test/integration/demo/**/*.test.ts",
+      "test/integration/packaging/**/*.test.ts",
       "test/integration/web/**/*.test.ts",
     ],
   },

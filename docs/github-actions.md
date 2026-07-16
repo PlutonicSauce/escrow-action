@@ -25,12 +25,12 @@ nested instruction scope resolution, and whether unsafe commands were blocked.
 
 ## Reusable action
 
-The project root is a complete GitHub Action implementation. Once this is
-released from a repository named `PlutonicSauce/escrow-action` and tagged `v1`,
-consumer workflows can use:
+The project root is a complete GitHub Action implementation. After the
+canonical `PlutonicSauce/escrow` repository is tagged `v0.1.0`, consumer
+workflows can use:
 
 ```yaml
-- uses: PlutonicSauce/escrow-action@v1
+- uses: PlutonicSauce/escrow@v0.1.0
   with:
     openai-api-key: ${{ secrets.OPENAI_API_KEY }}
     model: gpt-5.6-luna

@@ -1,291 +1,358 @@
-# Escrow — Devpost submission
+# Escrow — OpenAI Build Week submission draft
 
-## Project name
+## Submission details
 
-Escrow
-
-## Tagline
-
-> Executable tests for the instructions coding agents rely on.
-
-## Category
-
-Developer Tools
-
-## Main description
-
-Coding agents rely on repository instructions such as `AGENTS.md` and
-`AGENTS.override.md`. Those files often describe the package manager, test
-commands, installed frameworks, and documents that contributors should read.
-As a repository evolves, the instructions can quietly become stale even though
-they still look authoritative.
-
-Escrow is a local CLI that checks those instructions against the
-repository they describe. It uses Codex with GPT-5.6 to convert natural-language
-instructions into schema-constrained candidate claims, but it does not let the
-model decide whether anything passed. TypeScript validators compare each claim
-with concrete Git and package evidence, optionally execute documented commands
-in temporary Git worktrees, and produce console, JSON, Markdown, and standalone
-HTML reports with source locations and deterministic evidence.
-
-The included demo repository intentionally says npm while using pnpm, points to
-a deleted document, references a missing test script, and claims Jest is
-installed while declaring Vitest. Escrow reports all four discrepancies,
-recognizes a valid nested pnpm override, safely runs a documented health check
-outside the active checkout, and can ask Codex for a minimal `AGENTS.md` repair.
-The repair is accepted only after deterministic changed-file checks and a full
-revalidation.
+- **Project name:** Escrow
+- **Tagline:** Executable tests for the instructions coding agents rely on.
+- **Selected track:** Developer Tools
+- **Repository:** <https://github.com/PlutonicSauce/escrow>
+- **License:** MIT
+- **Public YouTube URL:** **TODO — add public YouTube URL**
+- **Codex `/feedback` Session ID:** **TODO — add the submitted Codex Session ID**
+- **GitHub Release URL:** **TODO — add after creating and verifying a tagged release**
+- **Entrant/team information:** **TODO — add entrant name, team name if
+  applicable, and required profile details**
 
 ## The problem
 
-Repository instruction files are operational inputs for coding agents, but
-normal build and test suites rarely verify them. A stale instruction can send an
-agent toward a deleted file, the wrong package manager, a nonexistent script,
-or a framework that is no longer installed. The text remains plausible, so the
-failure may appear only after an agent has already acted on it.
+Coding agents depend on repository instructions such as `AGENTS.md` and
+`AGENTS.override.md`. Those files can tell an agent which package manager to
+use, which tests to run, which framework is installed, and which documents to
+read before changing code. Repositories evolve, but instruction files are not
+normally part of the build. A stale sentence can remain plausible and
+authoritative long after the repository evidence has changed.
 
-## The solution
+Most instruction-enforcement tools ask whether an agent followed its
+instructions. Escrow asks a different question: do the instructions themselves
+still match repository reality?
 
-Escrow turns the verifiable parts of repository guidance into evidence-
-backed checks:
+## What Escrow does
 
-- `path_exists`: referenced files and directories must exist inside the Git
-  repository;
-- `package_manager`: npm, pnpm, or Yarn guidance must match lockfiles and
-  `package.json#packageManager` evidence;
-- `package_script`: documented npm, pnpm, or Yarn scripts must exist in the
-  nearest applicable `package.json`;
-- `dependency_present`: supported framework and tool claims must match declared
-  dependency metadata;
-- `command_runs`: documented commands may be executed only when `--execute` is
-  explicit and only in a temporary Git worktree;
-- `advisory`: non-verifiable guidance is preserved without affecting pass/fail
-  totals.
+Escrow is a local CLI and loopback-only web interface that discovers effective
+coding-agent instructions, extracts verifiable claims, and checks those claims
+against deterministic repository evidence. It supports:
 
-Nested instruction files are resolved from the Git root toward a selected
-target. More specific instructions can override broader guidance within their
-subtree without becoming false conflicts.
+- referenced files and directories;
+- npm, pnpm, and Yarn package-manager guidance;
+- documented package scripts;
+- a fixed, deterministic set of framework and tool dependencies;
+- opt-in execution of documented commands in temporary Git worktrees; and
+- advisory guidance that remains visible without affecting pass/fail totals.
+
+Every result includes its instruction source and deterministic evidence.
+Console, JSON, Markdown, standalone HTML, and the browser interface consume the
+same report model. Escrow can also ask Codex for a minimal instruction-only
+repair, verify it away from the active checkout, and show the result as a
+preview before any active file may change.
+
+The bundled synthetic monorepo demonstrates four realistic stale claims: it
+says npm while using pnpm, requires a deleted document, names a missing test
+script, and says Jest is installed while declaring Vitest. The verified fixture
+result is exactly one passing isolated health command and four deterministic
+failures. Its nested pnpm override is valid and is not reported as a conflict.
 
 ## How it works
 
-1. Resolve the canonical Git root and target directory.
-2. Walk root-to-target, selecting at most one non-empty instruction file per
-   directory. `AGENTS.override.md` takes precedence over `AGENTS.md` only in the
-   same directory.
-3. Send the numbered instruction content to Codex non-interactively in a
-   read-only sandbox with a strict output schema.
-4. Validate the response again with Zod, including claim type, exact source
-   file, line range, original text, normalized value, scope, confidence, and
-   extraction reason.
-5. Run deterministic validators against repository paths, package metadata,
-   scopes, overrides, and supported conflicts.
-6. When `--execute` is present, classify the documented command and run allowed
-   commands in a detached temporary Git worktree with timeout and output
-   capture.
-7. Aggregate one shared `EscrowReport` and render it as console, JSON,
-   Markdown, or self-contained HTML.
-8. In repair mode, ask Codex for a minimal documentation-only diff, verify the
-   patch in a temporary worktree, rerun Escrow, reject new failures, and
-   modify the active checkout only when `--apply` is explicit.
+1. Escrow resolves the canonical Git root and validates the selected target.
+2. It walks from the root to that target. In each directory it selects at most
+   one non-empty file, preferring `AGENTS.override.md` over `AGENTS.md` only in
+   that directory.
+3. It sends numbered instruction contents to Codex non-interactively in a
+   read-only extraction environment with schema-constrained JSON output.
+4. Zod validates the raw claims. Raw model output contains source locations,
+   normalized claim fields, confidence, and an extraction reason; it does not
+   supply trusted repository evidence.
+5. Escrow exactly matches each source file to the discovered instruction
+   chain, validates the inclusive line range, derives scope from discovery
+   metadata, and reconstructs `originalText` from the repository file itself.
+   There is no fuzzy matching and AI-generated text cannot become evidence.
+6. Deterministic TypeScript validators assign every verdict using canonical
+   paths, lockfiles, `package.json` metadata, nested scope, overrides, and the
+   narrow supported conflict rules.
+7. With `--execute`, a deterministic command policy runs before an allowed
+   command is launched in a detached temporary Git worktree. Escrow captures
+   stdout, stderr, exit code, duration, and working directory.
+8. Repair mode gives Codex the effective instruction chain, failures,
+   deterministic evidence, and an exact file allowlist. Escrow applies the
+   proposed patch in another temporary worktree, rejects forbidden changes or
+   new failures, and requires explicit `--apply` before changing an active
+   instruction file.
 
 ## Technical architecture
 
-Escrow is a Node.js 20+ ESM CLI written in strict TypeScript. Commander
-provides the command-line interface, Zod validates external and AI-generated
-data, and Vitest covers unit and Git-backed integration behavior. The runtime
-dependency set is intentionally limited to Commander and Zod.
+Escrow is a Node.js 20+ ESM application written in strict TypeScript. Its main
+boundaries are deliberately separate:
 
 ```text
-Git repository + target
-        |
-        v
-instruction discovery and deterministic scope
-        |
-        v
-Codex read-only extraction -> JSON Schema -> Zod
-        |
-        v
-deterministic validators and conflict handling
-        |
-        +---- static repository/package evidence
-        |
-        +---- optional policy -> temporary Git worktree -> command result
-        |
-        v
-one shared EscrowReport
-        |
-        +---- console
-        +---- JSON
-        +---- Markdown
-        +---- standalone HTML
+Git repository and target
+          |
+          v
+deterministic discovery and scope
+          |
+          v
+Codex raw extraction -> JSON Schema -> Zod
+          |
+          v
+deterministic source hydration and validators
+          |
+          +---- repository and package evidence
+          |
+          +---- opt-in policy -> temporary worktree -> command result
+          |
+          v
+one shared report object
+          |
+          +---- console / JSON / Markdown / static HTML / local UI
 ```
 
-Discovery, extraction, validation, execution, repair, reporting, and domain
-models are kept in separate modules. Report renderers consume the same report
-object so totals and overall status do not drift between formats.
+Discovery, extraction, validation, execution, repair, reporting, and web
+adapter code live in separate modules. The local UI uses Node's HTTP server and
+plain HTML, CSS, and JavaScript; it binds only to `127.0.0.1` and does not add a
+database, hosted service, telemetry, authentication system, or React runtime.
 
-## Where Codex accelerated development
+## How Codex accelerated development
 
-Codex was used as the coding and audit assistant for the milestone-scoped
-implementation: inspecting the repository, implementing focused TypeScript
-modules, creating fixtures and tests, running build/typecheck/test loops,
-reviewing security boundaries, and preparing the demo and onboarding
-documentation. Live acceptance runs also helped expose narrow schema and prompt
-compatibility defects that were then fixed and regression-tested.
+The tracked implementation history begins on July 13, 2026, during the July
+13–21 OpenAI Build Week submission period. The history and dated
+`IMPLEMENTATION.md` record Codex-assisted work across architecture planning,
+milestone-scoped TypeScript implementation, fixture and test generation,
+security reviews, debugging, documentation, packaging, demo preparation, and
+local UI integration.
 
-Codex did not replace the product's deterministic validation or automated test
-suite. No development speedup percentage or comparative benchmark was measured.
+Concrete examples include iterating on the raw-claim/source-hydration boundary,
+testing path traversal and command-policy bypasses, resolving incomplete rebase
+conflicts without discarding newer architecture, generating focused Git-backed
+fixtures, and repeatedly running build/typecheck/test acceptance loops. Live
+acceptance work exposed narrow schema, prompt, and model-output compatibility
+problems that were fixed and covered by regression tests.
 
-## Where GPT-5.6 is used at runtime
+Codex accelerated those engineering loops; it was not the acceptance
+authority. The builder retained the product boundaries, reviewed changes, and
+used deterministic code and tests to decide whether the work was correct. No
+speedup percentage, benchmark, or share-of-code metric was measured.
 
-GPT-5.6 is used only through the installed Codex CLI at two natural-language
-boundaries:
+## How GPT-5.6 is integrated at runtime
 
-1. **Claim extraction:** turn instruction text into schema-constrained candidate
-   claims with exact source locations.
-2. **Repair proposal:** propose the smallest truthful unified diff for effective
-   `AGENTS.md` or `AGENTS.override.md` files from failed claims and deterministic
-   evidence.
+This is separate from using Codex to build Escrow. At runtime Escrow invokes
+the installed Codex CLI at two natural-language boundaries:
 
-GPT-5.6 does not assign pass, fail, warning, blocked, inconclusive, advisory, or
-overridden statuses. It does not decide which instruction files apply, execute
-documented commands, accept patches, or calculate report totals. The default
-model is `gpt-5.6`; users can override it with `--model` or
-`ESCROW_CODEX_MODEL`, subject to their Codex account's model access.
+1. **Claim extraction.** GPT-5.6 converts numbered instruction text into typed,
+   schema-constrained raw claims with exact source locations and normalized
+   fields.
+2. **Restricted repair proposal.** GPT-5.6 proposes the smallest truthful
+   unified diff for the effective instruction files, based on deterministic
+   failures and evidence.
 
-## Key design decisions made by the team
+GPT-5.6 does not assign verdicts, decide which instruction files apply, provide
+trusted `originalText`, execute commands, accept repairs, or calculate totals.
+Those responsibilities stay in deterministic TypeScript.
 
-- **Separate interpretation from truth.** AI identifies candidate meaning;
-  deterministic code assigns every verdict.
-- **Preserve provenance.** Every extracted claim retains its instruction file,
-  line range, and original text.
-- **Treat scope as a path problem.** Canonical path ancestry determines
-  applicability, nested overrides, and supported conflicts; AI is not a policy
-  engine.
-- **Make execution opt-in and isolated.** Commands are not run by default and
-  never run in the active checkout.
-- **Use one report model.** Console, JSON, Markdown, and HTML share totals,
-  statuses, evidence, and command results.
-- **Restrict repair to documentation.** Repair mode cannot change source, tests,
-  package metadata, lockfiles, build configuration, or CI configuration.
-- **Prefer a small local tool.** There is no database, server, React UI,
-  authentication layer, hosted service, or repository integration in the MVP.
+The generic CLI default remains `gpt-5.6-terra`. The OpenAI Build Week judge
+demo and composite GitHub Action select `gpt-5.6-luna` because their primary
+model task is structured, repeatable claim extraction and classification.
+Model selection can be overridden with `--model` or `ESCROW_CODEX_MODEL`, and
+availability depends on the authenticated Codex account.
 
-## Safety model
+## Key product and engineering decisions made by the builder
 
-Escrow reduces risk through layered, fail-closed boundaries:
+- **Interpretation is not truth.** AI can identify meaning and propose words;
+  deterministic validators assign all statuses.
+- **Repository text is hydrated, not copied from AI.** Source files and line
+  ranges must exactly match discovery metadata before Escrow reconstructs the
+  evidence from disk.
+- **Scope is a path problem.** Canonical ancestry controls applicability,
+  nested overrides, and supported conflicts; GPT-5.6 is not the policy engine.
+- **Execution is explicit and isolated.** Documented commands do not run by
+  default and never use the active checkout as their working directory.
+- **Repair is narrower than validation.** Codex may propose changes only to
+  existing effective `AGENTS.md` and `AGENTS.override.md` files. Source, tests,
+  package metadata, lockfiles, build files, and CI files are forbidden.
+- **Preview comes first.** Repairs are revalidated in a worktree and active
+  changes require explicit confirmation; Escrow never commits or pushes.
+- **One report is the source of truth.** Every output surface uses the same
+  claims, evidence, totals, conflicts, overrides, and command results.
+- **Keep the MVP local and inspectable.** The runtime dependency set is
+  Commander and Zod, and the interface remains a small local tool.
 
-- AI output is constrained by JSON Schema and validated again with Zod.
-- Source paths, exact source text, line ranges, scope, and supported claim types
-  are checked after extraction.
-- Repository paths are bounded canonically and path validation does not follow
-  symlinks.
-- Documented commands require `--execute`, pass a deterministic policy first,
-  and run in detached temporary Git worktrees with timeouts and captured output.
-- Recognized destructive commands, unsafe shell constructs, credential paths,
-  traversal, and network-capable command forms without explicit permission are
-  blocked and reported.
-- Repair previews are the default. Candidate patches are limited to existing
-  effective instruction files, checked for structural and binary changes,
-  revalidated, and rejected if they introduce new failures.
-- Escrow never commits or pushes.
+## Technical challenges
 
-This is not a universal host sandbox. Network denial is policy- and environment-
-based where practical, and an otherwise allowed repository script is not
-contained against every possible transitive filesystem behavior.
+### Preserving exact evidence across an AI boundary
 
-## Supported platforms and scope
+Early extraction relied too heavily on model-copied source text. The current
+two-stage design validates only raw model fields first, then derives scope and
+reconstructs exact source lines from the discovered instruction file before
+the final claim schema is accepted. This preserves Markdown, indentation, and
+multiline text without fuzzy matching.
 
-- macOS and Linux;
-- local Git repositories;
-- Node.js 20 or newer;
-- JavaScript and TypeScript package evidence;
-- npm, pnpm, and Yarn;
-- root and nested `AGENTS.md` and `AGENTS.override.md` files;
-- deterministic dependency mappings for Vitest, Jest, TypeScript, ESLint,
-  Prettier, Vite, Next.js, React, Playwright, and Zod;
-- console, JSON, Markdown, and self-contained static HTML reports.
+### Separating a reference from a filename mention
 
-## Repository setup summary
+Instruction files mention filenames for many reasons. An allowed repair-file
+list is not a claim that every listed file exists. Escrow combines a stricter
+extraction prompt with deterministic intent filtering so genuine requirements
+such as “Read `SPEC.md`” remain checkable while examples, optional files,
+output destinations, naming conventions, and repair allowlists do not become
+false path failures.
 
-Prerequisites:
+### Executing instructions without trusting them
 
-- Node.js 20+;
-- Git;
-- npm;
-- macOS or Linux;
-- Codex CLI installed, authenticated, and available as `codex` for extraction
-  and repair.
+Shell syntax, traversal, credential paths, network clients, Git aliases,
+timeouts, and subprocess descendants create a broad safety surface. Escrow
+uses deterministic classification, argument-array subprocesses, temporary Git
+worktrees, timeout handling, process-group termination, output capture, and
+cleanup. The documentation still states the boundary honestly: this is not a
+portable packet-level or universal host sandbox.
 
-Install and verify from a checkout:
+### Repairing documentation without repairing the product
+
+A generated patch can rename, delete, create, symlink, or modify unrelated
+files even when its prose says otherwise. Escrow inspects the actual Git diff,
+allows only existing effective instruction files, rejects structural and
+binary changes, reruns validation, and rejects repairs that introduce new
+failures.
+
+### Keeping every surface consistent
+
+The CLI, four report formats, and local UI could easily drift. Escrow uses one
+report object and integration tests that compare all seven summary totals and
+the exact UI download payloads.
+
+## Accomplishments
+
+- Built the full discovery, extraction, hydration, deterministic validation,
+  nested scope, conflict, report, command-isolation, repair, CLI, and local UI
+  workflow described above.
+- Created a resettable judge fixture that deterministically shows exactly four
+  stale claims, one safe passing command, a valid nested override, an
+  instruction-only repair preview, and PASS revalidation.
+- Verified the repaired demo at `3 passed / 0 failed` while preview left the
+  active fixture unchanged.
+- Kept console, JSON, Markdown, standalone HTML, and UI totals identical.
+- Added a composite GitHub Action plus deterministic pull-request/push CI. The
+  normal automated suite does not require a live Codex request or credential.
+- Added a judge-ready `npm pack` flow and an isolated tarball smoke test. A
+  tagged release workflow exists, but no GitHub Release is claimed here.
+- Reached a current verified local result of 40 test files and 478 passing
+  tests, with strict type checking and production build passing.
+- Completed the demonstrated scan-to-repair workflow within the existing
+  three-minute presentation target. No user, adoption, customer, or time-saved
+  metric is claimed.
+
+## What was learned
+
+- Schema-constrained AI output is still untrusted input; repository evidence
+  should be reconstructed and checked after parsing.
+- Natural-language applicability and deterministic truth are different
+  problems. The model is useful for the first, while the second benefits from
+  small explicit validators.
+- Nested instructions need lexical discovery and canonical filesystem scope,
+  not a generic semantic conflict engine.
+- Safe execution and safe repair require lifecycle guarantees—working
+  directory, timeout, cleanup, changed-file inspection, and revalidation—not
+  only a prompt asking the model to behave.
+- A demo becomes more credible when its claims, fixture evidence, reset path,
+  offline reports, and automated tests all tell the same story.
+
+## What is next
+
+The immediate release work is operational rather than a new product claim:
+confirm the release version, run the documented package checks, create a
+version tag, and let the tag-only workflow produce the first GitHub Release
+tarball. Until that happens, the release URL remains a placeholder.
+
+Possible future work, not implemented in this submission, includes broader
+repository ecosystems, Windows support, global instruction discovery,
+stronger platform-specific command containment, and more deterministic claim
+mappings. Any expansion should preserve the central boundary: AI interprets
+language, deterministic repository evidence decides truth.
+
+## Technologies used
+
+- TypeScript 5.9 in strict mode
+- Node.js 20+ and ESM
+- Codex CLI and GPT-5.6
+- JSON Schema and Zod
+- Commander
+- Vitest
+- Git and temporary Git worktrees
+- npm packaging
+- GitHub Actions
+- HTML, CSS, and browser JavaScript for the local UI
+
+## Judge installation and testing
+
+Supported platforms are macOS and Linux. Judges need Node.js 20+, Git, npm,
+and an installed, authenticated Codex CLI with access to the selected model for
+live extraction and repair. Package installation, `--help`, `--version`, and
+the deterministic automated suite do not require a live model call.
+
+### Test from the checkout
 
 ```bash
-codex --version
-codex login status
-npm ci
-npm run build
-node dist/index.js --help
-```
-
-Optionally run `npm link` to expose the local `escrow` binary. Otherwise,
-use `node /path/to/escrow/dist/index.js` directly.
-
-Basic usage:
-
-```bash
-escrow check /path/to/repository
-escrow check /path/to/repository --target packages/api
-escrow check /path/to/repository --execute --timeout 120
-escrow check /path/to/repository \
-  --json report.json --markdown report.md --html report.html
-escrow fix /path/to/repository
-escrow fix /path/to/repository --apply
-```
-
-## Testing instructions
-
-```bash
+git clone https://github.com/PlutonicSauce/escrow.git escrow
+cd escrow
 npm ci
 npm run typecheck
 npm test
 npm run build
+npm link
 ```
 
-The normal suite uses mocked Codex subprocesses and harmless temporary Git
-fixtures; it does not require a live Codex request. The current verified suite
-contains 402 passing tests across 30 test files.
-
-The optional live extraction test is explicitly gated:
+### Run the prepared judge demo
 
 ```bash
-ESCROW_RUN_CODEX_INTEGRATION=1 npm run test:codex-integration
+codex --version
+codex login status
+npm run demo:reset
+escrow ui .escrow-demo/sample-monorepo \
+  --model "${ESCROW_DEMO_MODEL:-gpt-5.6-luna}" --execute
 ```
+
+Open the printed loopback URL, scan the instructions, inspect the four
+failures and passing health command, preview the `AGENTS.md`-only repair, and
+revalidate the verified PASS report. Preview does not modify the disposable
+demo checkout. Stop the server with Ctrl+C and run `npm run demo:reset` to
+restore the broken state.
+
+The canonical spoken walkthrough is
+[`docs/demo-script.md`](demo-script.md). Detailed fixture evidence is in
+[`docs/case-study.md`](case-study.md), architecture and trust boundaries are in
+[`docs/architecture.md`](architecture.md), and release-tarball instructions
+are in [`docs/judge-installation.md`](judge-installation.md).
+
+### GitHub Release installation
+
+**TODO — after a release exists:** add the verified GitHub Release URL above
+and confirm the exact tarball filename in the judge installation guide. Do not
+claim a published release before that step is complete.
 
 ## Known limitations
 
 - Windows is not supported by the MVP.
-- Repository and package validation is limited to local Git repositories and
-  JavaScript/TypeScript package evidence.
-- Only npm, pnpm, and Yarn are recognized.
-- Framework/tool recognition uses the fixed mappings listed above rather than
-  arbitrary semantic dependency inference.
-- Global instruction discovery and the documented `--include-global` flag are
-  not implemented.
-- The documented `--verbose` flag is not implemented.
+- Repository/package validation targets local JavaScript and TypeScript Git
+  repositories and recognizes npm, pnpm, and Yarn.
+- Framework/tool validation uses a fixed mapping rather than arbitrary
+  semantic dependency inference.
+- Global instruction discovery and the documented `--include-global` option
+  are not implemented.
+- The documented `--verbose` option is not implemented.
 - Report parent directories must already exist.
-- Extraction and repair require a working, authenticated Codex CLI and access
-  to the selected model. Live natural-language output and service latency can
-  vary.
-- Network restriction is not a portable packet-level sandbox, and command
-  policy cannot guarantee the transitive behavior of an allowed repository
-  script.
-- Repair mode requires a clean active checkout and updates existing effective
-  instruction files only.
-- Escrow does not provide Windows support, hosted UI, React, GitHub or
-  GitLab integration, pull-request comments, accounts, dashboards, repository
-  indexing, vulnerability scanning, general code review, automatic source-code
-  repair, commits, or pushes.
+- Live extraction and repair require Codex authentication and model access;
+  model output and service latency can vary.
+- Network restriction is policy- and environment-based where practical, not a
+  portable packet-level sandbox. An allowed repository script's transitive
+  behavior must still be trusted.
+- Repair requires a clean active checkout and can update only existing
+  effective instruction files.
+- Escrow does not claim a hosted demo, npm publication, GitHub Marketplace
+  listing, external adoption, or a GitHub Release.
 
-## License
+## Submission checklist placeholders
 
-MIT
+- [ ] **TODO — public YouTube URL**
+- [ ] **TODO — Codex `/feedback` Session ID**
+- [ ] **TODO — GitHub Release URL after it actually exists**
+- [ ] **TODO — entrant/team information**
+- [ ] **TODO — confirm whether any prototype, design, or code existed before
+      the first tracked commit on July 13, 2026**
+- [ ] **TODO — optionally add a personal, first-person example of the most
+      valuable Codex-assisted development moment**
