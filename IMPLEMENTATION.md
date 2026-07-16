@@ -4748,6 +4748,159 @@ npm test -- --reporter=dot
 
 No commit or push was performed.
 
+## Honest scan and repair loading experience — 2026-07-16
+
+- Added stable-width loading treatments for Scan and Preview repair. Each
+  button is disabled during its request, shows a small CSS spinner and accurate
+  active label, rejects duplicate programmatic submissions, and restores its
+  original label on success or failure.
+- Scan changes the header status to RUNNING. A returned report supplies the
+  final PASS, FAIL, or PASS WITH WARNINGS status; a failed initial scan becomes
+  ERROR, while a failed refresh restores the previous report status and labels
+  the retained evidence as previous verified results.
+- Added one shared indeterminate progress track with no numeric ARIA value or
+  displayed percentage. Scan copy shows elapsed seconds and restrained helper
+  messages at 5, 10, and 20 seconds. Only initial and final operation messages
+  use the live status region; per-second and delayed copy is `aria-hidden`.
+- Pipeline items are all queued during a scan. No elapsed-time callback marks a
+  stage complete. A successful report completes applicable stages and retains
+  the existing execution skip; a failure marks every stage interrupted.
+- A rescan leaves the previous report rendered with reduced opacity,
+  `Updating results…`, and `aria-busy="true"`. Success replaces it; failure
+  removes the busy treatment but retains the prior evidence with an explicit
+  refresh-failed message.
+- Repair preview uses the same single-timer, spinner, elapsed-time, duplicate
+  guard, and guaranteed cleanup pattern without fake repair stages.
+- CSS respects `prefers-reduced-motion: reduce`: spinner and moving indicators
+  stop, leaving a short static active bar.
+
+### Files changed
+
+- `src/web/assets.ts`
+- `test/unit/web/assets.test.ts`
+- `test/unit/web/loadingState.test.ts`
+- `PLAN.md`
+- `IMPLEMENTATION.md`
+
+### Verification
+
+```text
+npm run typecheck
+  PASS
+
+npx vitest run test/unit/web/assets.test.ts \
+  test/unit/web/loadingState.test.ts
+  PASS; 2 files, 8 tests
+
+npm test -- --reporter=dot
+  PASS; 41 files, 483 tests, 6.84s
+
+npm run build
+  PASS
+
+git diff --check
+  PASS
+```
+
+The live ignored demo was reset and served on `127.0.0.1:4174` with
+`gpt-5.6-luna`, command execution enabled, and network disabled. The real scan
+lasted through the delayed-message window and returned the canonical
+`1 passed / 4 failed / 0 warnings` report. The real repair preview also lasted
+long enough to exercise its waiting state and returned a verified
+`AGENTS.md`-only patch with `3 passed / 0 failed` after revalidation. Nothing
+was applied to the active checkout.
+
+The deterministic browser harness inspected the initial state, elapsed 10s
+state, success, failed refresh with existing results, duplicate scan, and
+repair-preview failure. It also verified that timers reach zero after every
+completed operation and that time-based callbacks never complete a pipeline
+stage. Reduced-motion CSS was inspected statically because Safari automation
+cannot change that operating-system preference in this environment. Safari
+loaded the live loopback page, but OS screen-capture permission remained
+unavailable, so no screenshot is claimed.
+
+No commit or push was performed.
+
+## Restrained local UI reduction pass — 2026-07-16
+
+- Removed the repeated application/hero identity and replaced it with a plain
+  `Escrow / sample-monorepo` application bar, compact status badge, 24px
+  `Instruction integrity` title, one-line description, and nearby Scan action.
+- Removed gradients, glow, shadows, eyebrow copy, numbered section labels,
+  decorative stage boxes, oversized spacing, and rounded non-status pills.
+  Surfaces are flat, use 1px borders, and stay at a maximum 6px radius except
+  the two compact semantic status badges.
+- Limited monospace typography to paths, exact source text, source locations,
+  evidence, commands, changed filenames, and diffs. Labels, controls, stages,
+  totals, and explanatory copy use the native system UI stack.
+- Consolidated all scan settings under an open Configuration disclosure.
+  Command safety copy changes from `Command execution disabled` to
+  `Commands run in isolated worktrees` when execution is enabled; the
+  misleading read-only label no longer exists.
+- Added `displayConfigurationRepository` and `displayConfigurationTarget`.
+  The browser renders the canonical demo repository as `sample-monorepo` and
+  its root target as `.`, while the server retains canonical paths for
+  discovery and boundary checks. Repository evidence remains relative, and
+  outside home paths are abbreviated rather than exposing a home directory.
+- Kept scan, stages, downloads, all filters, claim details, instruction chain,
+  repair preview, revalidation, confirmation, apply, APIs, payloads, CSP,
+  focus styles, and responsive layouts intact. A comparison against `HEAD`
+  confirmed that no existing DOM ID was removed.
+
+### Files changed in this revision
+
+- `src/web/assets.ts`
+- `test/unit/web/assets.test.ts`
+- `test/unit/web/server.test.ts`
+- `PLAN.md`
+- `IMPLEMENTATION.md`
+
+### Verification
+
+```text
+npx vitest run test/unit/web/assets.test.ts test/unit/web/claimFilters.test.ts
+  PASS; 2 files, 8 tests
+
+npx vitest run test/unit/web/server.test.ts \
+  test/integration/web/uiWorkflow.test.ts test/unit/commands/ui.test.ts
+  PASS; 3 files, 11 tests
+
+npm run typecheck
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 40 files, 480 tests, 7.53s
+
+npm run build
+  PASS
+
+git diff --check
+  PASS
+```
+
+The real ignored demo was reset and started at `http://127.0.0.1:4173/` with
+`gpt-5.6-luna` and isolated command execution. Its authenticated scan produced
+the canonical `1 passed / 4 failed / 0 warnings` result; the passing claim was
+the safe command, and the four failures were package manager, missing path,
+missing package script, and stale dependency guidance. The first repair call
+was safely rejected because Codex returned a corrupt patch. A retry was safely
+rejected because re-extraction would have introduced a new failed Jest claim.
+Escrow did not apply either proposal. The deterministic demo workflow tests
+continue to exercise the verified preview and PASS revalidation states.
+
+Safari loaded the READY state of the real loopback UI, and the report endpoint
+exercised the failed state. The intended human-review appearance is: a 52px
+flat app bar; one compact title/action row; a bordered Configuration disclosure;
+plain inline stages; an inline `1 passed · 4 failed · 0 warnings` summary;
+failed diagnostic rows expanded with monospace evidence; and a flat repair
+section with explicit `Preview only`, `Active checkout unchanged`, and
+`Verified instruction files only` labels above a unified diff. OS screen
+capture remained unavailable, so no screenshot is claimed. No temporary
+worktree remained, and the active repository was not modified beyond the five
+intended files.
+
+No commit or push was performed.
+
 ## OpenAI Build Week submission draft — 2026-07-16
 
 ### Completed
@@ -5096,3 +5249,77 @@ npm run build
 
 No test was weakened, removed, skipped, or excluded. No commit or push was
 performed.
+
+## Local UI developer-tool redesign — 2026-07-16
+
+- Replaced the cream editorial presentation with a compact dark interface
+  based on `#0d1117`, `#161b22`, `#1c2128`, and `#30363d`, with the specified
+  blue, green, red, and amber status colors. Typography now uses only native
+  system UI and monospace stacks; no external font, framework, image, or
+  runtime dependency was added.
+- Added compact app chrome with the Escrow identity, instruction-integrity
+  label, active repository, and live READY/PASS/FAIL status. The scan panel now
+  keeps the repository and isolated-execution safety choice visible while
+  placing target, model, and network opt-in under native advanced disclosure.
+- Restyled scan progress as CI-like stages, ordered summary metrics with issues
+  first, made failed and warning-like results prominent, kept passed/advisory
+  results quiet, and retained failed claims expanded by default.
+- Restyled the repair preview as a code-review surface with verification,
+  before/after totals, changed files, a scrollable patch, revalidation, explicit
+  confirmation, and the existing danger-styled apply action.
+- Preserved every browser-script ID, event handler, filter, endpoint, report
+  format, repository-relative evidence formatter, repair safety check, ARIA
+  status region, keyboard focus style, local-only CSP, and mobile behavior.
+
+### Files changed
+
+- `src/web/assets.ts`
+- `test/unit/web/assets.test.ts`
+- `PLAN.md`
+- `IMPLEMENTATION.md`
+
+### Verification
+
+```text
+npx vitest run test/unit/web/assets.test.ts test/unit/web/claimFilters.test.ts \
+  test/unit/web/server.test.ts test/integration/web/uiWorkflow.test.ts
+  PASS; 4 files, 16 tests
+
+npm run typecheck
+  PASS
+
+npm test -- --reporter=dot
+  PASS; 40 files, 479 tests, 7.31s
+
+npm run build
+  PASS
+
+git diff --check
+  PASS
+
+npm run demo:reset
+node dist/index.js ui .escrow-demo/sample-monorepo \
+  --model gpt-5.6-luna --execute --no-open --port 4173
+  PASS; loopback UI started and Safari loaded the expected Escrow page
+```
+
+The authenticated live demo scan exercised the shared UI backend and the safe
+command worktree. It returned `1 passed / 3 failed / 1 inconclusive` because
+the live extraction supplied `dependencyNames: ["Jest"]`; the deterministic
+validator correctly rejected that metadata mismatch instead of converting it
+into the canonical fixture's fourth failure. The repair preview was likewise
+rejected because its re-extraction would have introduced a new failed Jest
+claim. No extraction or verdict behavior was changed for this visual-only task.
+The mocked deterministic demo remains covered at `1 passed / 4 failed` and a
+verified instruction-only repair to PASS.
+
+The page was opened at `http://127.0.0.1:4173/` in Safari at 1792 by 999 CSS
+window content area. Automated responsive CSS assertions and the browser asset
+contract passed. OS screen-capture permission and Safari's disabled
+JavaScript-from-Apple-Events setting prevented an image/DOM-geometry capture,
+so final subjective visual review at the 1024px and phone breakpoints remains a
+human review item. The UI server was stopped, the reset demo stayed ignored,
+the active Escrow checkout was unchanged beyond the four intended files, and
+no temporary worktrees remained.
+
+No commit or push was performed.

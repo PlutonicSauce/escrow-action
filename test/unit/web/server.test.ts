@@ -69,7 +69,7 @@ describe("local UI server", () => {
     const page = await fetch(server.url);
     expect(page.status).toBe(200);
     expect(page.headers.get("content-security-policy")).toContain("default-src 'self'");
-    expect(await page.text()).toContain("Instructions you can trust.");
+    expect(await page.text()).toContain("Instruction integrity");
     const configResponse = await fetch(`${server.url}/api/config`);
     expect(configResponse.headers.get("access-control-allow-origin")).toBeNull();
     await expect(configResponse.json()).resolves.toMatchObject({

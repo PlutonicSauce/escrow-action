@@ -18,6 +18,83 @@ describe("local UI assets", () => {
     expect(APP_JAVASCRIPT).not.toMatch(/AgentContract|ProofCatcher/u);
   });
 
+  it("uses the dark developer-tool visual contract without external assets", () => {
+    for (const token of [
+      "--page:#0d1117",
+      "--panel:#161b22",
+      "--subtle:#1c2128",
+      "--border:#30363d",
+      "--text:#e6edf3",
+      "--muted:#8b949e",
+      "--blue:#2f81f7",
+      "--green:#3fb950",
+      "--red:#f85149",
+      "--amber:#d29922",
+    ]) {
+      expect(STYLES_CSS).toContain(token);
+    }
+    expect(INDEX_HTML).toContain('name="color-scheme" content="dark"');
+    expect(INDEX_HTML).toContain("Instruction integrity");
+    expect(INDEX_HTML).toContain("Configuration");
+    expect(APP_JAVASCRIPT).toContain("Commands run in isolated worktrees");
+    expect(INDEX_HTML).not.toContain("Read-only by default");
+    expect(INDEX_HTML).not.toContain("Instructions you can trust.");
+    expect(INDEX_HTML).toContain("Verified patch");
+    expect(STYLES_CSS).not.toContain("Georgia");
+    expect(STYLES_CSS).not.toContain("gradient");
+    expect(STYLES_CSS).not.toContain("box-shadow");
+    expect(STYLES_CSS).toContain("prefers-reduced-motion:reduce");
+    expect(STYLES_CSS.match(/border-radius:999px/gu)).toHaveLength(2);
+    expect(INDEX_HTML).not.toContain("eyebrow");
+    expect(INDEX_HTML).not.toContain("step-label");
+    expect(INDEX_HTML).not.toMatch(/<(?:img|link)[^>]+https?:\/\//u);
+    expect(INDEX_HTML).toContain('role="progressbar"');
+    expect(INDEX_HTML).not.toContain("aria-valuenow");
+    expect(INDEX_HTML).not.toContain("aria-valuemax");
+    expect(APP_JAVASCRIPT).not.toMatch(/updateStages\([^)]*(?:seconds|elapsed)/u);
+  });
+
+  it("never places an absolute home-directory repository path in configuration", () => {
+    const functionSource = APP_JAVASCRIPT.match(
+      /function displayConfigurationRepository[\s\S]*?(?=\nfunction displayConfigurationTarget)/u,
+    )?.[0];
+    expect(functionSource).toBeDefined();
+    const createFormatter = new Function(
+      String(functionSource ?? "") + "; return displayConfigurationRepository;",
+    ) as () => (value: string) => string;
+    const displayRepository = createFormatter();
+
+    expect(
+      displayRepository(
+        "/Users/example/Desktop/Projects/Escrow/.escrow-demo/sample-monorepo",
+      ),
+    ).toBe("sample-monorepo");
+    expect(APP_JAVASCRIPT).toContain(
+      "$('repository').value=repositoryLabel",
+    );
+    expect(APP_JAVASCRIPT).not.toContain(
+      "$('repository').value=state.config.repository",
+    );
+
+    const targetFunction = APP_JAVASCRIPT.match(
+      /function displayConfigurationTarget[\s\S]*?(?=\nfunction redactHomePath)/u,
+    )?.[0];
+    const createTargetFormatter = new Function(
+      "state",
+      String(targetFunction ?? "") + "; return displayConfigurationTarget;",
+    ) as (state: { config: { repository: string } }) => (value: string) => string;
+    const displayTarget = createTargetFormatter({
+      config: { repository: "/Users/example/work/sample-monorepo" },
+    });
+    expect(displayTarget("/Users/example/work/sample-monorepo")).toBe(".");
+    expect(
+      displayTarget("/Users/example/work/sample-monorepo/packages/api"),
+    ).toBe("packages/api");
+    expect(displayTarget("/Users/example/private")).toBe(
+      "[outside repository]",
+    );
+  });
+
   it("includes the required controls, evidence views, filters, and repair confirmation", () => {
     for (const id of [
       "repository",
@@ -55,7 +132,7 @@ describe("local UI assets", () => {
     expect(APP_JAVASCRIPT).toContain(
       "These instructions do not match the repository.",
     );
-    expect(APP_JAVASCRIPT).toContain("[outside repository] ");
+    expect(APP_JAVASCRIPT).toContain("[outside repository]");
     expect(APP_JAVASCRIPT).toContain("function displayRepositoryEvidence");
     expect(APP_JAVASCRIPT).toContain("displayRepositoryEvidence(item)");
     for (const label of [
@@ -74,7 +151,7 @@ describe("local UI assets", () => {
 
   it("renders deterministic evidence with safe repository-relative paths", () => {
     const functionSource = APP_JAVASCRIPT.match(
-      /function displayRepositoryEvidence[\s\S]*?(?=\nfunction sourceLocation)/u,
+      /function redactHomePath[\s\S]*?(?=\nfunction sourceLocation)/u,
     )?.[0];
     expect(functionSource).toBeDefined();
     const createFormatter = new Function(
@@ -101,8 +178,6 @@ describe("local UI assets", () => {
       formatEvidence(
         'External path "/Users/demo/repository-other/secrets.txt" was rejected.',
       ),
-    ).toBe(
-      'External path "/Users/demo/repository-other/secrets.txt" was rejected.',
-    );
+    ).toBe('External path "~/repository-other/secrets.txt" was rejected.');
   });
 });

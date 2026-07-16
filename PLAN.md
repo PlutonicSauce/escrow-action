@@ -1287,3 +1287,58 @@ IMPLEMENTATION.md
 **Milestone 13 — Demo repository and final polish is complete.**
 
 **Milestone 14 — Local Web Interface is complete.**
+
+### Final local-UI visual polish — 2026-07-16
+
+- Reworked the dependency-free browser surface into a compact dark
+  developer-tool interface using the specified page, panel, border, text, and
+  verdict color tokens.
+- Preserved the existing loopback server, API routes, control IDs, report
+  downloads, issue-first filters, repair confirmation, deterministic verdicts,
+  and responsive behavior. No validator, extraction, report, or repair logic
+  changed.
+- Added a compact repository/status header, collapsible advanced scan settings,
+  CI-style scan stages, issue-prioritized metrics, diagnostic claim rows, and a
+  code-review-style verified repair diff.
+- Added focused asset-contract coverage for the dark palette, system font
+  stack, local-only assets, safety labeling, advanced controls, and repair
+  review surface. The complete deterministic suite passes with 40 files and
+  479 tests.
+
+### Restrained utility-design revision — 2026-07-16
+
+- Reduced the local UI to a single compact application bar, a plain
+  `Escrow / repository` breadcrumb, one utility title, and flat 1px-bordered
+  surfaces. Removed the repeated identity, marketing hero, glowing tile,
+  gradients, shadows, eyebrow labels, numbered sections, decorative pipeline
+  boxes, and non-semantic pills.
+- Consolidated repository, target, model, command execution, and network
+  controls under a normal Configuration disclosure. Execution copy now says
+  either that execution is disabled or that commands run in isolated
+  worktrees.
+- Converted stages and summary totals to compact inline lists, claims to
+  diagnostic rows, and repair preview to a conventional unified-diff review
+  with explicit preview and checkout-safety labels.
+- Added deterministic browser display helpers so repository configuration and
+  target fields use only a basename or repository-relative value. Canonical
+  absolute paths remain server-side; in-repository evidence remains relative,
+  and outside home paths are abbreviated.
+- Preserved all 33 pre-existing DOM IDs and added only the execution-safety
+  copy target. The final deterministic suite passes with 40 files and 480
+  tests.
+
+### Honest indeterminate loading states — 2026-07-16
+
+- Added guarded scan and repair-preview loading controllers with stable-width
+  button spinners, elapsed time, a shared indeterminate progress track, and
+  accurate RUNNING/success/error status restoration.
+- Kept backend progress honest: stages remain queued while a request is in
+  flight and become complete only after a successful response. Failed requests
+  mark the pipeline interrupted without inventing completed work or numeric
+  percentages.
+- Kept previous reports visible during refresh with an updating treatment and
+  `aria-busy`; a failed refresh retains and explicitly labels the prior report.
+- Added reduced-motion behavior and focused browser-harness tests for timers,
+  duplicate suppression, stale results, success/failure cleanup, repair
+  protection, and non-numeric progress. No server or validation behavior
+  changed.
