@@ -24,8 +24,14 @@ function claimKey(claim) {
 }
 
 function detail(claim) {
-  const message = escapeMarkdown(claim.evidence?.[0] ?? "Deterministic validation did not match the repository.");
-  return message.length > 260 ? `${message.slice(0, 257)}...` : message;
+  // Validators append their final, decisive finding after scope-selection
+  // details. Lead the CI summary with that conclusion and the instruction a
+  // reviewer actually needs to update.
+  const evidence = claim.evidence ?? [];
+  const message = escapeMarkdown(evidence[evidence.length - 1] ?? "Deterministic validation did not match the repository.");
+  const instruction = escapeMarkdown(claim.originalText ?? "");
+  const combined = instruction.length > 0 ? `“${instruction}” — ${message}` : message;
+  return combined.length > 260 ? `${combined.slice(0, 257)}...` : combined;
 }
 
 function render(report) {
