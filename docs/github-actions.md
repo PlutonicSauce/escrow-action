@@ -45,7 +45,12 @@ installs dependencies without lifecycle scripts, and uses a disposable
 
 For a zero-API-cost demo, add your Mac as a repository self-hosted runner and
 run the **Escrow local Ollama** workflow manually. It uses Ollama with
-`qwen2.5-coder:3b` and does not read `OPENAI_API_KEY`. The Mac must be online,
+`qwen2.5-coder:7b` and does not read `OPENAI_API_KEY`. The Mac must be online,
 awake, and running Ollama while the job runs. Do not enable this workflow for
 untrusted fork pull requests: a self-hosted runner executes repository code on
 your own computer.
+
+Escrow treats a non-empty instruction chain with zero source-grounded extracted
+claims as **incomplete extraction**, not a successful verification. The report
+states that no instructions were verified and the workflow fails closed, so a
+weak or unavailable local model cannot create a misleading green check.

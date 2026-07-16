@@ -29,6 +29,7 @@ function detail(claim) {
 }
 
 function render(report) {
+  const extractionCoverage = report.claims.find((claim) => claim.id === "escrow-extraction-coverage");
   const conflicting = new Set((report.conflicts ?? []).flatMap((conflict) => conflict.claims.map(claimKey)));
   const stale = report.claims.filter((claim) => claim.status === "failed" && !conflicting.has(claimKey(claim)));
   const blocked = report.claims.filter((claim) => claim.status === "blocked");
@@ -41,7 +42,13 @@ function render(report) {
     blocked.length > 0 ? `${blocked.length} unsafe` : undefined,
     inconclusive.length > 0 ? `${inconclusive.length} unverifiable` : undefined,
   ].filter(Boolean);
-  lines.push(categories.length === 0 ? "**Escrow verified the repository instructions.**" : `**Escrow found ${categories.join(", ")} instruction issue${categories.length === 1 && categories[0].startsWith("1 ") ? "" : "s"}.**`, "");
+  lines.push(
+    extractionCoverage !== undefined
+      ? "**Escrow could not complete claim extraction. No repository instructions were verified.**"
+      : categories.length === 0 ? "**Escrow verified the repository instructions.**" : `**Escrow found ${categories.join(", ")} instruction issue${categories.length === 1 && categories[0].startsWith("1 ") ? "" : "s"}.**`,
+    "",
+  );
+  if (extractionCoverage !== undefined) lines.push(`- ? Model extraction incomplete — ${detail(extractionCoverage)}`);
   for (const claim of stale) lines.push(`- ✗ \`${location(claim, report.repositoryRoot)}\` — ${detail(claim)}`);
   for (const conflict of report.conflicts ?? []) lines.push(`- ! Conflicting instructions — ${escapeMarkdown(conflict.message)}`);
   for (const claim of blocked) lines.push(`- ! Unsafe instruction blocked at \`${location(claim, report.repositoryRoot)}\` — ${detail(claim)}`);

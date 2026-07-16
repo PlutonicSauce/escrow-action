@@ -60,6 +60,43 @@ function advisoryResult(claim: ExtractAndValidateResult["deferredClaims"][number
   };
 }
 
+function extractionCoverageDiagnostic(
+  instructionChain: Awaited<ReturnType<typeof discoverInstructions>>["instructionChain"],
+  extractedClaimCount: number,
+): ValidatedClaim | undefined {
+  if (instructionChain.length === 0 || extractedClaimCount > 0) {
+    return undefined;
+  }
+
+  const instruction = instructionChain.find(
+    (candidate) => candidate.content.trim().length > 0,
+  );
+  if (instruction === undefined) {
+    return undefined;
+  }
+  const sourceLines = instruction.content.split(/\r?\n/u);
+  const lineIndex = Math.max(0, sourceLines.findIndex((line) => line.trim().length > 0));
+  const originalText = sourceLines[lineIndex] ?? "";
+
+  return {
+    id: "escrow-extraction-coverage",
+    type: "advisory",
+    sourceFile: instruction.path,
+    lineStart: lineIndex + 1,
+    lineEnd: lineIndex + 1,
+    originalText,
+    normalizedValue: "claim extraction coverage",
+    scopeDirectory: instruction.directory,
+    confidence: 1,
+    extractionReason: "Escrow generated this diagnostic because the selected model returned no supported claims.",
+    status: "inconclusive",
+    evidence: [
+      "No supported, source-grounded claims were extracted from non-empty repository instructions. Escrow did not verify those instructions.",
+    ],
+    suggestion: "Use a more capable extraction model or simplify the instruction language, then run Escrow again.",
+  };
+}
+
 type ExtractAndValidateResult = Awaited<
   ReturnType<typeof extractAndValidateClaims>
 >;
@@ -97,16 +134,25 @@ export async function createRepositoryReport(
     },
   });
 
+  const claims = [
+    ...validation.validatedClaims,
+    ...validation.deferredClaims.map(advisoryResult),
+  ];
+  const coverageDiagnostic = extractionCoverageDiagnostic(
+    discovery.instructionChain,
+    claims.length,
+  );
+  if (coverageDiagnostic !== undefined) {
+    claims.push(coverageDiagnostic);
+  }
+
   return createAgentContractReport({
     version: AGENTCONTRACT_VERSION,
     generatedAt: dependencies.generatedAt(),
     repositoryRoot: discovery.repositoryRoot,
     targetDirectory: discovery.targetDirectory,
     instructionChain: discovery.instructionChain,
-    claims: [
-      ...validation.validatedClaims,
-      ...validation.deferredClaims.map(advisoryResult),
-    ],
+    claims,
     conflicts: validation.conflicts,
   });
 }

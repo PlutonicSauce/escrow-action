@@ -21,7 +21,9 @@ jobs:
         uses: ./
         with:
           local-provider: ollama
-          model: qwen2.5-coder:3b
+          # The 7B coding model is the smallest local option that reliably
+          # extracts multiple repository claims for this workflow.
+          model: qwen2.5-coder:7b
           target: demo/sample-monorepo
           execute: "true"
           allow-network: "false"

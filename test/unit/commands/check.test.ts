@@ -169,4 +169,24 @@ describe("checkRepository command execution options", () => {
       'data-summary-key="advisory" data-summary-value="1"',
     );
   });
+
+  it("does not present non-empty instructions with zero extracted claims as verified", async () => {
+    discoverInstructionsMock.mockResolvedValueOnce({
+      repositoryRoot: "/repo",
+      targetDirectory: "/repo",
+      instructionChain: [
+        {
+          path: "/repo/AGENTS.md",
+          directory: "/repo",
+          fileName: "AGENTS.md",
+          content: "Use the project test command.\n",
+        },
+      ],
+    });
+
+    await checkRepository("/repo", {}, dependencies);
+
+    expect(consoleOutput[0]).toContain("1 inconclusive");
+    expect(consoleOutput[0]).toContain("Escrow did not verify those instructions");
+  });
 });
