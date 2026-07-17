@@ -325,6 +325,35 @@ describe("extractClaims", () => {
     expect(hydrated.map((item) => item.id)).toEqual(["real-healthcheck"]);
   });
 
+  it("uses deterministic package metadata for a known dependency tool", async () => {
+    const jestInstruction = {
+      ...INSTRUCTION,
+      content: "- Use the installed Jest dependency for unit tests.\n",
+    };
+    const mistakenMetadata: RawExtractedClaim = {
+      id: "jest-with-unrelated-packages",
+      type: "dependency_present",
+      sourceFile: SOURCE_FILE,
+      lineStart: 1,
+      lineEnd: 1,
+      normalizedValue: "Jest",
+      dependencyNames: ["@testing-library/jest-dom", "@testing-library/react"],
+      confidence: 0.9,
+      extractionReason: "Explicitly stated tool with incorrect package metadata.",
+    };
+
+    const [hydrated] = await extractClaims({
+      repositoryRoot: REPOSITORY_ROOT,
+      instructionChain: [jestInstruction],
+      runner: mockRunner(
+        result({ stdout: JSON.stringify({ claims: [mistakenMetadata] }) }),
+      ),
+    });
+
+    expect(hydrated?.normalizedValue).toBe("Jest");
+    expect(hydrated?.dependencyNames).toEqual(["jest"]);
+  });
+
   it("discards a model claim with a source range outside the instruction file", async () => {
     const invalidClaim: RawExtractedClaim = {
       id: "outside-source",

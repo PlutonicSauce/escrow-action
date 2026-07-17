@@ -63,7 +63,9 @@ Type-specific fields:
   instruction is a command_runs claim, not a package_script claim.
 - dependency_present: set normalizedValue to only the concise framework or tool
   name, never a sentence (for example, "Jest"); include one or more normalized
-  package names in dependencyNames.
+  package names in dependencyNames. For a named tool, never substitute related
+  packages or plugins; for example, Jest maps to "jest", not Testing Library
+  packages.
 - command_runs: include command.
 - advisory: include no optional claim metadata.
 

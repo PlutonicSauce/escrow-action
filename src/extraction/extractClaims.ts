@@ -18,6 +18,7 @@ import {
   type EffectiveClaimScope,
 } from "../validation/conflictValidator.js";
 import { validateClaim } from "../validation/validateClaim.js";
+import { findDependencyMapping } from "../validation/dependencyMappings.js";
 import {
   extractedClaimSchema,
   rawCodexExtractionResponseSchema,
@@ -163,6 +164,24 @@ function hasSourceGroundedPackageScript(claim: ExtractedClaim): boolean {
   );
 }
 
+function canonicalizeKnownDependencyMetadata(
+  claim: ExtractedClaim,
+): ExtractedClaim {
+  if (claim.type !== "dependency_present") {
+    return claim;
+  }
+  const mapping = findDependencyMapping(claim.normalizedValue);
+  if (mapping === undefined) {
+    return claim;
+  }
+
+  // The model identifies the tool named by the source instruction. Escrow's
+  // supported tool-to-package map is the deterministic authority for package
+  // names, so local-model metadata cannot redirect a known tool (for example,
+  // Jest) to an unrelated package.
+  return { ...claim, dependencyNames: [...mapping.dependencyNames] };
+}
+
 function hydrateClaimSources(
   claims: readonly RawExtractedClaim[],
   instructionChain: readonly InstructionFile[],
@@ -209,7 +228,7 @@ function hydrateClaimSources(
         `Hydrated claim "${claim.id}" failed ExtractedClaim schema validation: ${formatSchemaIssues(parsedHydratedClaim.error.issues)}.`,
       );
     }
-    return [parsedHydratedClaim.data];
+    return [canonicalizeKnownDependencyMetadata(parsedHydratedClaim.data)];
   });
 
   return hydratedClaims.filter((claim) => {
